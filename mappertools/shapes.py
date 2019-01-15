@@ -3,6 +3,7 @@ import itertools
 import numpy as np
 import sklearn.neighbors
 
+## In development. DO NOT USE?
 
 def mesh_to_nxgraph(mesh):
     """

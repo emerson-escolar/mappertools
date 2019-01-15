@@ -6,6 +6,10 @@ from mpl_toolkits.mplot3d import Axes3D
 
 import kmapper
 
+"""
+Helpful(?) scripts to do plotting
+"""
+
 def scatter3d(X, lens, colorsMap='jet_r', show=True):
     assert X.shape[1] == 3
     assert lens.shape[1] == 1
