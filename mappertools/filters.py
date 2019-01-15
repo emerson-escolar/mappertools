@@ -3,6 +3,25 @@ from scipy.spatial import distance
 
 
 def laplacian_gauss_kernel(X, epsilon, metric='euclidean'):
+    """
+    Laplacian gauss kernel density estimation from observations in n-dimensional space
+
+    Parameters
+    ----------
+    X : ndarray
+        An m by n array of m original observations in an n-dimensional space.
+    epsilon: float
+        Parameter for Gauss kernel. Equal to twice sigma squared.
+    metric: str or function, optional
+        The distance metric to use. The distance function can
+        be 'braycurtis', 'canberra', 'chebyshev', 'cityblock',
+        'correlation', 'cosine', 'dice', 'euclidean', 'hamming',
+        'jaccard', 'kulsinski', 'mahalanobis', 'matching',
+        'minkowski', 'rogerstanimoto', 'russellrao', 'seuclidean',
+        'sokalmichener', 'sokalsneath', 'sqeuclidean', 'yule'.
+        (See scipy.spatial.distance.pdist)
+    """
+
     dists = distance.pdist(X, metric)
     weights = numpy.exp(numpy.square(dists) * (-1/epsilon))
 
@@ -13,8 +32,6 @@ def laplacian_from_weights(weights):
     k1 = weights.sum(axis=1, keepdims=True)
 
     return (weights/numpy.sqrt(k0))/numpy.sqrt(k1)
-
-
 
 
 
@@ -72,7 +89,7 @@ def gauss_kernel_density_from_dist(dists, epsilon):
 
 def eccentricity_from_dist(dists, p=2):
     """
-    Compute eccentricity
+    Compute eccentricity, given pairwise distances.
 
     Parameters
     ----------
@@ -94,4 +111,22 @@ def eccentricity_from_dist(dists, p=2):
     return numpy.linalg.norm(ans, ord=p, axis=1,keepdims=True) / (ans.shape[0] ** (1./p))
 
 def eccentricity(X, p=2, metric='euclidean'):
+    """
+    Compute eccentricity from observations in n-dimensional space
+
+    Parameters
+    ----------
+    X : ndarray
+        An m by n array of m original observations in an n-dimensional space.
+    p: positive integer, or np.inf
+        order of exponent
+    metric: str or function, optional
+        The distance metric to use. The distance function can
+        be 'braycurtis', 'canberra', 'chebyshev', 'cityblock',
+        'correlation', 'cosine', 'dice', 'euclidean', 'hamming',
+        'jaccard', 'kulsinski', 'mahalanobis', 'matching',
+        'minkowski', 'rogerstanimoto', 'russellrao', 'seuclidean',
+        'sokalmichener', 'sokalsneath', 'sqeuclidean', 'yule'.
+        (See scipy.spatial.distance.pdist)
+    """
     return eccentricity_from_dist(distance.pdist(X,metric), p)
