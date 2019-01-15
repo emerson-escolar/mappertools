@@ -5,6 +5,32 @@ import mappertools.visualization as qs
 import numpy as np
 
 def do_mds_one_dim_analysis(data, data_name, dim=2, metric='correlation', output_folder = None, do_outputs=False):
+    """
+    Performs MDS embedding.
+
+    A convenience wrapper to use sklearn.manifold.MDS with output images and residual analysis.
+    Returns a sklearn.manifold.MDS object.
+
+    Parameters
+    ----------
+    data : ndarray
+           An m by n array of m original observations in an n-dimensional space.
+    data_name : str
+           A name for the data. Used to name output files.
+    dim : int
+           With what dimension to do MDS.
+    metric : str or function, optional
+        The distance metric to use. The distance function can
+        be 'braycurtis', 'canberra', 'chebyshev', 'cityblock',
+        'correlation', 'cosine', 'dice', 'euclidean', 'hamming',
+        'jaccard', 'kulsinski', 'mahalanobis', 'matching',
+        'minkowski', 'rogerstanimoto', 'russellrao', 'seuclidean',
+        'sokalmichener', 'sokalsneath', 'sqeuclidean', 'yule'.
+        (See scipy.spatial.distance.pdist)
+    output_folder : pathlib.Path
+    do_outputs : bool
+    """
+
     dissimilarities = ssd.pdist(data, metric=metric)
     diss_matrix = ssd.squareform(dissimilarities)
 
