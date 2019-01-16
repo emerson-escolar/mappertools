@@ -2,6 +2,9 @@ import pytest
 
 import mappertools.text_dump as td
 import networkx as nx
+import kmapper as km
+import sklearn.cluster
+
 
 
 @pytest.fixture
@@ -38,3 +41,21 @@ def test_nxmapper_node_data_transformed(small_nxgraph):
 
     assert (G.nodes[1]['day'] == 10)
     assert (G.nodes[2]['day'] == 20)
+
+
+
+def test_kmapper_sample():
+    data = km.np.array([[0],[1],[2]])
+    lens = data
+
+    graph = km.KeplerMapper().map(data, data, clusterer=sklearn.cluster.DBSCAN(eps=1, min_samples=0),
+                                  coverer=km.Cover(nr_cubes=2, overlap_perc=1))
+    nxgraph = td.kmapper_to_nxmapper(graph)
+    assert len(nxgraph.edges) == 1
+    assert len(nxgraph.nodes) == 2
+
+    for _,_,data in nxgraph.edges.data():
+        assert 'membership' in data
+
+    for _,data in nxgraph.nodes.data():
+        assert 'membership' in data
