@@ -4,8 +4,130 @@ import copy
 import networkx as nx
 
 import json
-
 import kmapper as km
+
+
+
+def nxmapper_append_node_member_data(nxgraph, extra_data, transforms=None):
+    """
+    Assumptions
+    -----------
+    Each node in nxgraph has 'membership' data that contains indices of original observations.
+
+    Parameters
+    ----------
+    extra_data : dict of dicts {key : {index : data}}
+        For each node, for each *key*, append list of *data* corresponding to its list of member *index*es
+
+    transforms: dict {key : function}
+        For each *key*, apply *function* to the extra_data appended to nodes
+    """
+    for key, data_map in extra_data.items():
+        if transforms == None or key not in transforms:
+            fun = (lambda x:x)
+        else:
+            fun = transforms[key]
+        for node, membership in nxgraph.nodes.data('membership'):
+            nxgraph.nodes[node][key] = fun([data_map[k] for k in membership])
+
+    return nxgraph
+
+def nxmapper_append_edge_member_data(nxgraph, extra_data, transforms=None):
+    """
+    Assumptions
+    -----------
+    Each edge in nxgraph has 'membership' data which is a list of indices of original observations.
+
+    Parameters
+    ----------
+    extra_data : dict of dicts {key : {index : data}}
+        For each edge, for each *key*, append list of *data* corresponding to its list of member *index*es
+
+    transforms: dict {key : function}
+        For each *key*, apply *function* to the extra_data appended to edges
+    """
+    for key, data_map in extra_data.items():
+        if transforms == None or key not in transforms:
+            fun = (lambda x:x)
+        else:
+            fun = transforms[key]
+        for u, v, membership in nxgraph.edges.data('membership'):
+            nxgraph.edges[(u,v)][key] = fun([data_map[k] for k in membership])
+
+    return nxgraph
+
+
+def kmapper_to_nxmapper(graph, counts=True, weights=True):
+    """
+    Convenience function for turning kmapper output into networkx format with extra data
+
+    Assumptions
+    -----------
+    graph is a kmapper output graph
+
+    Parameters
+    ----------
+    counts : bool
+        whether or not to append membership 'count' data to nodes and edges, and 'weight' data to edges.
+
+    weights : bool
+        whether or not to append membership 'weight' data to edges
+    """
+
+    nxgraph = km.adapter.to_nx(graph)
+
+    # Append edge membership
+    for u,v in nxgraph.edges:
+        u_mem = set(nxgraph.nodes[u]['membership'])
+        v_mem = set(nxgraph.nodes[v]['membership'])
+        nxgraph.edges[(u,v)]['membership'] =  list(u_mem.intersection(v_mem))
+
+        if counts:
+            nxgraph.edges[(u,v)]['count'] =  len(nxgraph.edges[(u,v)]['membership'])
+        if weights:
+            nxgraph.edges[(u,v)]['weight'] =  nxgraph.edges[(u,v)]['count'] / len(list(u_mem.union(v_mem)))
+
+    # Append node membership counts
+    if counts:
+        for node, membership in nxgraph.nodes.data('membership'):
+            nxgraph.nodes[node]["count"] = len(membership)
+
+    return nxgraph
+
+def cytoscapejson_dump(graph, file,
+                       members_extra_data, edges_extra_data,
+                       node_transforms=None, edge_transforms=None):
+    """
+    Dump kmapper graph, with extra data, as cytoscape json file.
+
+    Assumptions
+    -----------
+    graph is a kmapper output graph
+
+    Parameters
+    ----------
+    members_extra_data : dict of dicts {key : {index : data}}
+        For each node, for each *key*, append list of *data* corresponding to its list of member *index*es
+
+    node_transforms: dict {key : function}
+        For each *key*, apply *function* to the extra_data appended to nodes
+
+    edges_extra_data : dict of dicts {key : {index : data}}
+        For each edge, for each *key*, append list of *data* corresponding to its list of member *index*es
+
+    edge_transforms: dict {key : function}
+        For each *key*, apply *function* to the extra_data appended to edges
+    """
+
+    nxGraph = kmapper_to_nxmapper(graph, counts=True, weights=True)
+    nxGraph = nxmapper_append_node_member_data(nxGraph, members_extra_data, node_transforms)
+    nxGraph = nxmapper_append_edge_member_data(nxGraph, edges_extra_data, edge_transforms)
+
+    with open(file, 'w') as outfile:
+       json.dump(nx.readwrite.json_graph.cytoscape_data(nxGraph), outfile)
+
+    return nxGraph
+
 
 
 def _compute_averages(data, graph, averager=(lambda x: numpy.mean(x, axis=0))):
@@ -35,18 +157,6 @@ def cytoscapejson_dump_with_averages(data, graph, file, averager=(lambda x: nump
 
     return nxGraph
 
-
-def cytoscapejson_dump(graph, members_extra_data, file):
-    nxGraph = km.adapter.to_nx(graph)
-
-    for key, data_map in members_extra_data.items():
-        for node, membership in nxGraph.nodes.data('membership'):
-            nxGraph.nodes[node][key] = [data_map[k] for k in membership]
-
-    with open(file, 'w') as outfile:
-       json.dump(nx.readwrite.json_graph.cytoscape_data(nxGraph), outfile)
-
-    return nxGraph
 
 
 
