@@ -12,6 +12,7 @@ def small_nxgraph():
     G = nx.Graph()
     G.add_node(1,membership=[0,1,3])
     G.add_node(2,membership=[1,2,3])
+    G.add_edge(1,2,membership=[1,3])
 
     extra_data = {'colors' : ['red', 'green', 'blue', 'black'],
                   'day' : {0:10,1:20,2:30,3:40}}
@@ -33,7 +34,6 @@ def test_nxmapper_node_data(small_nxgraph):
 
 def test_nxmapper_node_data_transformed(small_nxgraph):
     G,extra_data,transforms = small_nxgraph
-
     td.nxmapper_append_node_member_data(G, extra_data, transforms)
 
     assert (G.nodes[1]['colors'] == 'redgreenblack')
@@ -41,6 +41,23 @@ def test_nxmapper_node_data_transformed(small_nxgraph):
 
     assert (G.nodes[1]['day'] == 10)
     assert (G.nodes[2]['day'] == 20)
+
+
+def test_nxmapper_edge_data(small_nxgraph):
+    G,extra_data,_ = small_nxgraph
+    td.nxmapper_append_edge_member_data(G, extra_data)
+
+    assert (G.edges[(1,2)]['colors'] == ['green','black'])
+    assert (G.edges[(1,2)]['day'] == [20,40])
+
+
+def test_nxmapper_edge_data_transformed(small_nxgraph):
+    G,extra_data,transforms = small_nxgraph
+    td.nxmapper_append_edge_member_data(G, extra_data, transforms)
+
+    assert (G.edges[(1,2)]['colors'] == 'greenblack')
+    assert (G.edges[(1,2)]['day'] == 20)
+
 
 
 
