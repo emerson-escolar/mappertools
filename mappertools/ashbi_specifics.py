@@ -8,6 +8,7 @@ import numpy as np
 
 ashbi_colors = {"cyan":(0,255,255),
                 "gold":(255,215,0),
+                "gray5": (1,1,1),
                 "gray15":(25,25,25),
                 "tomato":(255,99,71),
                 "red":(255,0,0),
