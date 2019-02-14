@@ -11,7 +11,8 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     """
     Agglomerative Linkage Clustering
 
-    Instead of specifying n_clusters, uses the heuristic in Mapper paper to decide.
+    Instead of specifying n_clusters, uses the "first-gap" heuristic in the original
+    Mapper paper to decide.
     Uses scipy.cluster.hierarchy algorithms.
     Class is designed to emulate sklearn.cluster format, for compatibility with kmapper.
 
