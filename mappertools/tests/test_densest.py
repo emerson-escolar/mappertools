@@ -44,3 +44,16 @@ def test_fragmented(fragmented):
     fragmented.add_edge(-1,0, weight=3)
     density, S = ds.graph_peeling(fragmented)
     assert density == 1.5
+
+def test_two_complete():
+    G = nx.complete_graph(range(0,10)) #K10
+    H = nx.complete_graph(range(10,15)) #K5
+
+    GH = nx.union(G,H)
+    GH.add_edge(9,10)
+    nx.set_edge_attributes(GH, 1, 'weight')
+
+    density, S = ds.graph_peeling(GH)
+    print(S)
+    # 10*(10-1)/2 = 45 edges, 10 vertices in K10
+    assert density == 4.5
