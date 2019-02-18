@@ -9,5 +9,5 @@ setup(name='mappertools',
       version='0.2',
       description='Mapper tools',
       packages=find_packages(exclude=["*.tests"]),
-      install_requires=['numpy', 'matplotlib']
+      install_requires=['numpy', 'matplotlib', 'networkx']
 )
