@@ -66,7 +66,7 @@ def test_kmapper_sample():
     lens = data
 
     graph = km.KeplerMapper().map(data, data, clusterer=sklearn.cluster.DBSCAN(eps=1, min_samples=0),
-                                  coverer=km.Cover(nr_cubes=2, overlap_perc=1))
+                                  cover=km.Cover(n_cubes=2, perc_overlap=1))
     nxgraph = td.kmapper_to_nxmapper(graph)
     assert len(nxgraph.edges) == 1
     assert len(nxgraph.nodes) == 2
