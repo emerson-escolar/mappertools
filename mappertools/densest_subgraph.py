@@ -2,6 +2,31 @@ import heapq
 import networkx as nx
 import copy
 
+import sys
+
+
+
+def check_edge_weights(G, edge_weight_string = "weight"):
+    all_ok = True
+    for u,v,w in G.edges.data(edge_weight_string):
+        if not w:
+            print("Edge ({!s},{!s}) missing weight attribute {}".format(u,v,edge_weight_string) , file=sys.stderr)
+            all_ok = False
+            continue
+
+        try:
+            w < 0
+        except Exception as err:
+            print(err, file=sys.stderr)
+            print("Edge ({!s},{!s}) has weight attribute {}={!s} not comparable to 0".format(u,v,edge_weight_string, w) , file=sys.stderr)
+            all_ok = False
+        else:
+            if w < 0:
+                print("Edge ({!s},{!s}) has weight attribute {}={!s} less than 0".format(u,v,edge_weight_string, w) , file=sys.stderr)
+                all_ok = False
+
+    return all_ok
+
 
 def adjacent_edge_weight_sum(node, G, edge_weight_string = "weight"):
     ans = 0
