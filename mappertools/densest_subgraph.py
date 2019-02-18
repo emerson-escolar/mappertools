@@ -54,9 +54,9 @@ def adjacent_edge_weight_sum(node, G, edge_weight_string = "weight"):
     return ans
 
 def graph_peeling(G, edge_weight_string = "weight"):
-    adj_weight_dict = {node: adjacent_edge_weight_sum(node) for node in G.nodes()}
+    adj_weight_dict = {node: adjacent_edge_weight_sum(node, G) for node in G.nodes()}
 
-    heap = [(weight, node) for node, weight in adj_weight_dict]
+    heap = [(weight, node) for node, weight in adj_weight_dict.items()]
     heapq.heapify(heap)
 
     S = set(G.nodes())
@@ -64,7 +64,7 @@ def graph_peeling(G, edge_weight_string = "weight"):
     cur_val = in_weight / len(S)
     cur_S = copy.deepcopy(S)
 
-    while n > 1:
+    while len(S) > 1:
         adj_weight, min_v = heapq.heappop(heap)
 
         if min_v in S:
