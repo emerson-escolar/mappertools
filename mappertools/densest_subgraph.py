@@ -7,6 +7,25 @@ import sys
 
 
 def check_edge_weights(G, edge_weight_string = "weight"):
+    """
+    check_edge_weights
+
+    Checks whether or not all edges in G have weight attribute
+    that does not compare as being less than 0.
+
+    Parameters
+    ----------
+    G : networkx Graph
+        Graph to check
+
+    edge_weight_string : str, optional
+        name of the attribute containing edge weights in G
+
+    Returns
+    -------
+    success boolean
+
+    """
     all_ok = True
     for u,v,w in G.edges.data(edge_weight_string):
         if not w:
