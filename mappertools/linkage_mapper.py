@@ -6,12 +6,13 @@ import scipy.spatial.distance
 
 import matplotlib.pyplot as plt
 
+from sklearn import metrics
 
 class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     """
     Agglomerative Linkage Clustering
 
-    Instead of specifying n_clusters, uses the "first-gap" heuristic in the original
+    Instead of specifying n_clusters, uses the "gap heuristic" in the original
     Mapper paper to decide.
     Uses scipy.cluster.hierarchy algorithms.
     Class is designed to emulate sklearn.cluster format, for compatibility with kmapper.
@@ -45,10 +46,10 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     will be incorrect."
     """
 
-    def __init__(self, method='single', metric='euclidean'):
+    def __init__(self, method='single', metric='euclidean', heuristic='lastgap'):
         self.method = method
         self.metric = metric
-        pass
+        self.heuristic = heuristic
 
     def fit(self, X, y=None):
         """Fit the Linkage clustering on data
@@ -93,7 +94,14 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             self.labels_ = numpy.ones(Z.shape[0]+1)
             return
 
-        idx = (hist == 0).argmax()
+        if self.heuristic == 'firstgap':
+            idx = (hist == 0).argmin()
+        else:
+            # default to lastgap
+            idx = (hist == 0).argmax()
+
         threshold = bin_edges[idx]
 
         self.labels_ = scipy.cluster.hierarchy.fcluster(Z, t=threshold, criterion='distance')
+
+        # print(metrics.silhouette_score(X, self.labels_, metric=self.metric))
