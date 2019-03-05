@@ -46,7 +46,7 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     will be incorrect."
     """
 
-    def __init__(self, method='single', metric='euclidean', heuristic='lastgap'):
+    def __init__(self, method='single', metric='euclidean', heuristic='firstgap'):
         self.method = method
         self.metric = metric
         self.heuristic = heuristic
@@ -88,20 +88,23 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         # plt.hist(merge_distances, bins=len(hist))
         # plt.show()
 
-        # first gap heuristic, as in Mapper paper
+
         if numpy.alltrue(hist != 0):
             # print("no gap!")
             self.labels_ = numpy.ones(Z.shape[0]+1)
-            return
 
-        if self.heuristic == 'firstgap':
-            idx = (hist == 0).argmin()
         else:
-            # default to lastgap
-            idx = (hist == 0).argmax()
+            gaps = numpy.argwhere(hist == 0).flatten()
+            if self.heuristic == 'lastgap':
+                idx = gaps.max()
+            elif self.heuristic == 'midgap':
+                idx = numpy.percentile(gaps, 50, interpolation='nearest')
+            else:
+                # default to firstgap
+                idx = gaps.min()
 
-        threshold = bin_edges[idx]
-
-        self.labels_ = scipy.cluster.hierarchy.fcluster(Z, t=threshold, criterion='distance')
-
+            threshold = bin_edges[idx]
+            self.labels_ = scipy.cluster.hierarchy.fcluster(Z, t=threshold,
+                                                            criterion='distance')
         # print(metrics.silhouette_score(X, self.labels_, metric=self.metric))
+        return
