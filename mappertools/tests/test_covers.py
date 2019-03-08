@@ -26,3 +26,29 @@ def test_uniform_lengths_overlaps():
     for i in range(len(lb)-1):
         assert np.isclose( (ub[i] - lb[i+1]), p * (ub[i]-lb[i]))
         assert np.isclose( (ub[i] - lb[i+1]), p * (ub[i+1]-lb[i+1]))
+
+
+def test_epcover_1d():
+    N = 100
+    data = np.random.normal(size=N)
+    # append ids
+    ids = np.arange(N)
+    data = np.c_[ids, data]
+
+    cov = cv.EPCover(10,0.5)
+    cov.fit(data)
+    patches = cov.transform(data)
+    member_counts = [len(x) for x in patches]
+
+    assert np.all(np.equal(member_counts, member_counts[0]))
+
+
+def test_epcover_2d():
+    N = 1000
+    data = np.random.normal(size=(N,2))
+    # append ids
+    ids = np.arange(N)
+    data = np.c_[ids, data]
+
+    cov = cv.EPCover(13,0.42)
+    cov.fit(data)
