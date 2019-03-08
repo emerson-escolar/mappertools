@@ -8,6 +8,9 @@ def uniform_cover_fences(x_min, x_max, n, p):
     lb = np.arange(x_min, x_min + n*stride, stride)
     ub = np.arange(x_min + length, x_min + length + n*stride, stride)
 
+    # force last entry to avoid rounding error problems:
+    ub[-1] = x_max
+
     return (lb,ub)
 
 
@@ -42,21 +45,6 @@ class EPCover(object):
         self.lower_bounds = np.vstack(tuple(np.percentile(data[:,1:], perc, axis=0, keepdims=True,interpolation='nearest') for perc in lb))
 
         self.upper_bounds = np.vstack(tuple(np.percentile(data[:,1:], perc, axis=0, keepdims=True,interpolation='nearest') for perc in ub))
-
-        return self._compute_centers(data)
-
-    def fit_WRONG(self, data):
-        data_mins = np.min(data[:,1:], axis=0, keepdims=True)
-        data_maxs = np.max(data[:,1:], axis=0, keepdims=True)
-
-        inner_fences = np.vstack(tuple(np.percentile(data[:,1:], i * 100.0/self.resolution, axis=0, keepdims=True) for i in range(1,self.resolution)))
-        self.lower_bounds = np.concatenate((data_mins, inner_fences), axis=0)
-        self.upper_bounds = np.concatenate((inner_fences, data_maxs), axis=0)
-
-        gains = self.gain * (self.upper_bounds - self.lower_bounds)
-
-        self.lower_bounds -= gains
-        self.upper_bounds += gains
 
         return self._compute_centers(data)
 
@@ -98,3 +86,23 @@ class EPCover(object):
 
 
         return ans
+
+    def fit_transform(self, data):
+        self.fit(data)
+        return self.transform(data)
+
+
+    def fit_sakmapper(self, data):
+        data_mins = np.min(data[:,1:], axis=0, keepdims=True)
+        data_maxs = np.max(data[:,1:], axis=0, keepdims=True)
+
+        inner_fences = np.vstack(tuple(np.percentile(data[:,1:], i * 100.0/self.resolution, axis=0, keepdims=True) for i in range(1,self.resolution)))
+        self.lower_bounds = np.concatenate((data_mins, inner_fences), axis=0)
+        self.upper_bounds = np.concatenate((inner_fences, data_maxs), axis=0)
+
+        gains = self.gain * (self.upper_bounds - self.lower_bounds)
+
+        self.lower_bounds -= gains
+        self.upper_bounds += gains
+
+        return self._compute_centers(data)
