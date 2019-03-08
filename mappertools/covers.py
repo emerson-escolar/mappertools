@@ -5,8 +5,8 @@ import itertools
 def uniform_cover_fences(x_min, x_max, n, p):
     length = (x_max - x_min) / (n - p * (n-1))
     stride = length-p*length
-    lb = np.arange(x_min, x_max, stride)
-    ub = np.arange(x_min + length, x_max+stride, stride)
+    lb = np.arange(x_min, x_min + n*stride, stride)
+    ub = np.arange(x_min + length, x_min + length + n*stride, stride)
 
     return (lb,ub)
 
