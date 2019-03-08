@@ -11,7 +11,6 @@ def print_stats(cube_entries):
     for i, hypercube in enumerate(cube_entries):
         print("There are %s points in cube %s/%s" % (hypercube.shape[0], i, len(bins)))
         #print("members: ", list(hypercube[:,1]))
-    print()
     for i, (c1, c2) in enumerate(zip(cube_entries, cube_entries[1:])):
         print("Cardinality overlap %s" % (overlap(c1[:,0], c2[:,0])))
 
@@ -30,13 +29,15 @@ lens = np.c_[ids, lens]
 cov = cover.Cover(10,0.25)
 
 ## imitate usage in kmapper.py KeplerMapper.map:
+print("***KMAPPER COVER***")
 bins = cov.fit(lens)
 bins = list(bins)  # extract list from generator
 cube_entries = cov.transform(lens)
 print_stats(cube_entries)
-
+print()
 
 ## EMAPPER
+print("***EQUALIZED PROJECTION COVER***")
 epcov = covers.EPCover(10,0.5)
 epcov.fit(lens)
 cube_entries = epcov.transform(lens)

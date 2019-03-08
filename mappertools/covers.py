@@ -47,7 +47,7 @@ class EPCover(object):
         """
 
         lb, ub = uniform_cover_fences(0,100,self.resolution,self.gain)
-        print(lb,ub)
+
         self.lower_bounds = np.vstack(tuple(np.percentile(data[:,1:], perc, axis=0, keepdims=True,interpolation='nearest') for perc in lb))
 
         self.upper_bounds = np.vstack(tuple(np.percentile(data[:,1:], perc, axis=0, keepdims=True,interpolation='nearest') for perc in ub))
