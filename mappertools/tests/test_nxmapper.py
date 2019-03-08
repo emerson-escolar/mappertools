@@ -5,7 +5,7 @@ import networkx as nx
 import kmapper as km
 import sklearn.cluster
 
-
+import numpy as np
 
 @pytest.fixture
 def small_nxgraph():
@@ -62,11 +62,10 @@ def test_nxmapper_edge_data_transformed(small_nxgraph):
 
 
 def test_kmapper_sample():
-    data = km.np.array([[0],[1],[2]])
+    data = np.array([[0],[1],[2]])
     lens = data
 
-    graph = km.KeplerMapper().map(data, data, clusterer=sklearn.cluster.DBSCAN(eps=1, min_samples=0),
-                                  coverer=km.Cover(nr_cubes=2, overlap_perc=1))
+    graph = km.KeplerMapper().map(data, data, clusterer=sklearn.cluster.DBSCAN(eps=1, min_samples=0), cover=km.Cover(n_cubes=2,perc_overlap=1))
     nxgraph = td.kmapper_to_nxmapper(graph)
     assert len(nxgraph.edges) == 1
     assert len(nxgraph.nodes) == 2
