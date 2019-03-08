@@ -17,27 +17,33 @@ def uniform_cover_fences(x_min, x_max, n, p):
 class EPCover(object):
     """
     Equalized Projection Cover
+
+    Intended for use with kmapper, and so the API follows that of kmapper.cover.Cover
     """
 
 
-    def __init__(self, resolution, gain):
+    def __init__(self, resolution, gain, verbose=0):
         self.resolution = resolution
         self.gain = gain
-        pass
+        self.verbose = verbose
 
 
 
     def fit(self, data):
-        """ Fit a cover on the data.
+        """ Fit the equalized projection cover on the data.
 
         Parameters
         ----------
-        data: array-like
+        data: numpy array-like
+            Assumed to be of size m x (d+1), where m is the number of observations,
+            and d is the dimension of each observation.
 
+            Warning: column 0 must be an index column.
 
-            Warning: First column must be an index column.
-
-
+        Returns
+        -------
+        centers: list
+            List of centers of the rectangles
         """
 
         lb, ub = uniform_cover_fences(0,100,self.resolution,self.gain)
@@ -59,19 +65,25 @@ class EPCover(object):
 
 
     def transform(self, data):
-        """ Fit a cover on the data.
+        """ Fit the equalized projection cover on the data.
 
         Parameters
         ----------
-        data: array-like
+        data: numpy array-like
+            Assumed to be of size m x (d+1), where m is the number of observations,
+            and d is the dimension of each observation.
 
+            Warning: column 0 must be an index column.
 
-            Warning: First column must be an index column.
+        Returns
+        -------
+        patches: list
+            List of data contained in the rectangles.
         """
 
 
         data_dim = data.shape[1] - 1
-        ans = []
+        patches = []
         for rect in itertools.product(range(self.resolution), repeat=data_dim):
             rect_lb = self.lower_bounds[rect, range(data_dim)]
             rect_ub = self.upper_bounds[rect, range(data_dim)]
@@ -80,12 +92,13 @@ class EPCover(object):
             member_bool = np.all(logical, axis=1, keepdims=False)
 
             members = data[member_bool,:]
-            ans.append(members)
+            patches.append(members)
 
-            print("{} members in cube {}".format(len(members),str(rect)))
+            if self.verbose:
+                print("{} members in cube {}".format(len(members),str(rect)))
 
 
-        return ans
+        return patches
 
     def fit_transform(self, data):
         self.fit(data)
