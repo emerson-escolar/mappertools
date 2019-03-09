@@ -1,6 +1,6 @@
 import sklearn.cluster
 import sklearn.base
-import numpy
+import numpy as np
 import scipy.cluster.hierarchy
 import scipy.spatial.distance
 
@@ -12,23 +12,33 @@ from sklearn import metrics
 
 def mapper_gap_heuristic(Z, percentile):
     merge_distances = Z[:,2]
-    hist, bin_edges = numpy.histogram(merge_distances, bins='doane')
+    hist, bin_edges = np.histogram(merge_distances, bins='doane')
 
     # plt.figure()
     # plt.hist(merge_distances, bins=len(hist))
     # plt.show()
 
-    if numpy.alltrue(hist != 0):
+    if np.alltrue(hist != 0):
         # print("no gap!")
-        labels = numpy.ones(Z.shape[0]+1)
+        labels = np.ones(Z.shape[0]+1)
         k = 1
     else:
-        gaps = numpy.argwhere(hist == 0).flatten()
-        idx = numpy.percentile(gaps, percentile, interpolation='nearest')
+        gaps = np.argwhere(hist == 0).flatten()
+        idx = np.percentile(gaps, percentile, interpolation='nearest')
         threshold = bin_edges[idx]
         labels = scipy.cluster.hierarchy.fcluster(Z, t=threshold, criterion='distance')
         k = len(set(labels))
     return labels, k
+
+
+
+
+def cluster_number_to_threshold(k, merge_distances):
+    # check merge distances is non decreasing:
+    assert np.all(np.diff(merge_distances) >= 0)
+
+    # threshold is kth entry counting from the last.
+    return merge_distances[-k]
 
 
 
@@ -100,7 +110,7 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         """
 
         if len(X.shape) == 2 and X.shape[0] == 1:
-            self.labels_ = numpy.array([1])
+            self.labels_ = np.array([1])
             return
 
         Z = scipy.cluster.hierarchy.linkage(X, method=self.method, metric=self.metric)
