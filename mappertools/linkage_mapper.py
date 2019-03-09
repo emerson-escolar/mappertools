@@ -8,6 +8,30 @@ import matplotlib.pyplot as plt
 
 from sklearn import metrics
 
+
+
+def mapper_gap_heuristic(Z, percentile):
+    merge_distances = Z[:,2]
+    hist, bin_edges = numpy.histogram(merge_distances, bins='doane')
+
+    # plt.figure()
+    # plt.hist(merge_distances, bins=len(hist))
+    # plt.show()
+
+    if numpy.alltrue(hist != 0):
+        # print("no gap!")
+        labels = numpy.ones(Z.shape[0]+1)
+        k = 1
+    else:
+        gaps = numpy.argwhere(hist == 0).flatten()
+        idx = numpy.percentile(gaps, percentile, interpolation='nearest')
+        threshold = bin_edges[idx]
+        labels = scipy.cluster.hierarchy.fcluster(Z, t=threshold, criterion='distance')
+        k = len(set(labels))
+    return labels, k
+
+
+
 class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     """
     Agglomerative Linkage Clustering
@@ -40,16 +64,17 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
 
     Quoted:
     "Methods 'centroid', 'median' and 'ward' are correctly defined only if
-    Euclidean pairwise metric is used. If `y` is passed as precomputed
+    Euclidean pairwise metric is used. If `X` is passed as precomputed
     pairwise distances, then it is a user responsibility to assure that
     these distances are in fact Euclidean, otherwise the produced result
     will be incorrect."
     """
 
-    def __init__(self, method='single', metric='euclidean', heuristic='firstgap'):
+    def __init__(self, method='single', metric='euclidean', heuristic='firstgap', verbose=1):
         self.method = method
         self.metric = metric
         self.heuristic = heuristic
+        self.verbose = verbose
 
     def fit(self, X, y=None):
         """Fit the Linkage clustering on data
@@ -61,6 +86,7 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             is a flat array containing the upper triangular of the distance matrix.
             This is the form that ``pdist`` returns. All elements of the condensed
             distance matrix must be finite, i.e. no NaNs or infs.
+
             Alternatively, a collection of `m` observation vectors in `n` dimensions
             as an `m` by `n` array.
 
@@ -77,34 +103,34 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             self.labels_ = numpy.array([1])
             return
 
-
         Z = scipy.cluster.hierarchy.linkage(X, method=self.method, metric=self.metric)
 
 
-        merge_distances = Z[:,2]
-        hist, bin_edges = numpy.histogram(merge_distances, bins='doane')
 
-        # plt.figure()
-        # plt.hist(merge_distances, bins=len(hist))
-        # plt.show()
+        if self.verbose and self.metric != 'precomputed':
+            print("*** Linkage Mapper Report ***")
 
-
-        if numpy.alltrue(hist != 0):
-            # print("no gap!")
-            self.labels_ = numpy.ones(Z.shape[0]+1)
-
-        else:
-            gaps = numpy.argwhere(hist == 0).flatten()
-            if self.heuristic == 'lastgap':
-                idx = gaps.max()
-            elif self.heuristic == 'midgap':
-                idx = numpy.percentile(gaps, 50, interpolation='nearest')
+            if X.shape[0] > 2:
+                dists = scipy.spatial.distance.pdist(X, metric=self.metric)
+                c, _ = scipy.cluster.hierarchy.cophenet(Z, dists)
+                print("cophentic correlation distance: {}".format(c))
             else:
-                # default to firstgap
-                idx = gaps.min()
+                print("cophentic correlation distance: invalid, too few data points")
 
-            threshold = bin_edges[idx]
-            self.labels_ = scipy.cluster.hierarchy.fcluster(Z, t=threshold,
-                                                            criterion='distance')
-        # print(metrics.silhouette_score(X, self.labels_, metric=self.metric))
+        # MAPPER PAPER GAP HEURISTIC
+        gap_heuristic_percentiles = {'firstgap': 0, 'midgap': 50, 'lastgap':100}
+        if self.heuristic in gap_heuristic_percentiles:
+            percentile = gap_heuristic_percentiles[self.heuristic]
+            self.labels_, k = mapper_gap_heuristic(Z, percentile)
+
+
+
+        # FINAL REPORTING
+        if self.verbose and self.metric != 'precomputed':
+            if k > 1:
+                print("silhouette score: {}".format(metrics.silhouette_score(X, self.labels_, metric=self.metric)))
+            else:
+                print("silhouette score: invalid, too few final clusters")
+
+
         return
