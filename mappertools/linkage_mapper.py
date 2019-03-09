@@ -10,27 +10,6 @@ from sklearn import metrics
 
 
 
-def mapper_gap_heuristic(Z, percentile):
-    merge_distances = Z[:,2]
-    hist, bin_edges = np.histogram(merge_distances, bins='doane')
-
-    # plt.figure()
-    # plt.hist(merge_distances, bins=len(hist))
-    # plt.show()
-
-    if np.alltrue(hist != 0):
-        # print("no gap!")
-        labels = np.ones(Z.shape[0]+1)
-        k = 1
-    else:
-        gaps = np.argwhere(hist == 0).flatten()
-        idx = np.percentile(gaps, percentile, interpolation='nearest')
-        threshold = bin_edges[idx]
-        labels = scipy.cluster.hierarchy.fcluster(Z, t=threshold, criterion='distance')
-        k = len(set(labels))
-    return labels, k
-
-
 
 
 def cluster_number_to_threshold(k, merge_distances):
@@ -80,11 +59,42 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     will be incorrect."
     """
 
-    def __init__(self, method='single', metric='euclidean', heuristic='firstgap', verbose=1):
+    def __init__(self, method='single', metric='euclidean', heuristic='firstgap',
+                 k_max=None, verbose=1):
+
         self.method = method
         self.metric = metric
         self.heuristic = heuristic
+        self.k_max = k_max
         self.verbose = verbose
+
+
+
+    def mapper_gap_heuristic(self, Z, percentile):
+        merge_distances = Z[:,2]
+        hist, bin_edges = np.histogram(merge_distances, bins='doane')
+
+        # plt.figure()
+        # plt.hist(merge_distances, bins=len(hist))
+        # plt.show()
+
+        if np.alltrue(hist != 0):
+            # print("no gap!")
+            labels = np.ones(Z.shape[0]+1)
+            k = 1
+        else:
+            gaps = np.argwhere(hist == 0).flatten()
+            idx = np.percentile(gaps, percentile, interpolation='nearest')
+
+            threshold = bin_edges[idx]
+
+            labels = scipy.cluster.hierarchy.fcluster(Z, t=threshold, criterion='distance')
+            k = len(set(labels))
+            
+        return labels, k
+
+
+
 
     def fit(self, X, y=None):
         """Fit the Linkage clustering on data
@@ -131,12 +141,13 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         gap_heuristic_percentiles = {'firstgap': 0, 'midgap': 50, 'lastgap':100}
         if self.heuristic in gap_heuristic_percentiles:
             percentile = gap_heuristic_percentiles[self.heuristic]
-            self.labels_, k = mapper_gap_heuristic(Z, percentile)
+            self.labels_, k = self.mapper_gap_heuristic(Z, percentile)
 
 
 
         # FINAL REPORTING
         if self.verbose and self.metric != 'precomputed':
+            print("{} clusters detected".format(k))
             if k > 1:
                 print("silhouette score: {}".format(metrics.silhouette_score(X, self.labels_, metric=self.metric)))
             else:
