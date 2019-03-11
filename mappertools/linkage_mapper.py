@@ -50,6 +50,28 @@ def mapper_gap_heuristic(Z, percentile, k_max=None):
 
 
 
+def DaviesBouldinIndex(X, labels):
+    return 0
+
+
+
+
+def statistic_heuristic(X, Z, k_max, statistic=DaviesBouldinIndex):
+    merge_distances = Z[:,2]
+
+    optimal_stat = np.inf
+    optimal_labels, optimal_k = None, None
+
+    for k in range(1, k_max+1):
+        t = cluster_number_to_threshold(k, merge_distances)
+        labels = scipy.cluster.hierarchy.fcluster(Z, t=threshold, criterion='distance')
+        if statistic(X, labels) <  optimal_stat:
+            optimal_labels, optimal_k = labels, k
+
+    return optimal_labels, optimal_k
+
+
+
 class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     """
     Agglomerative Linkage Clustering
@@ -133,8 +155,6 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
 
         Z = scipy.cluster.hierarchy.linkage(X, method=self.method, metric=self.metric)
 
-
-
         if self.verbose and self.metric != 'precomputed':
             print("*** Linkage Mapper Report ***")
 
@@ -145,13 +165,13 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             else:
                 print("cophentic correlation distance: invalid, too few data points")
 
-
         # MAPPER PAPER GAP HEURISTIC
         gap_heuristic_percentiles = {'firstgap': 0, 'midgap': 50, 'lastgap':100}
         if self.heuristic in gap_heuristic_percentiles:
             percentile = gap_heuristic_percentiles[self.heuristic]
             self.labels_, k = mapper_gap_heuristic(Z, percentile, self.k_max)
-
+        elif self.heuristic == 'db':
+            self.labels_, k = statistic_heuristic(X, Z, self.k_max, statistic=DaviesBouldinIndex):
 
 
         # FINAL REPORTING
