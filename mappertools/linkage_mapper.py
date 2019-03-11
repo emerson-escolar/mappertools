@@ -21,6 +21,35 @@ def cluster_number_to_threshold(k, merge_distances):
 
 
 
+def mapper_gap_heuristic(Z, percentile, k_max=None):
+    merge_distances = Z[:,2]
+
+    if k_max != None and k_max != np.inf:
+        merge_distances = merge_distances[-k_max:]
+
+    hist, bin_edges = np.histogram(merge_distances, bins='doane')
+
+    # plt.figure()
+    # plt.hist(merge_distances, bins=len(hist))
+    # plt.show()
+
+    if np.alltrue(hist != 0):
+        # print("no gap!")
+        labels = np.ones(Z.shape[0]+1)
+        k = 1
+    else:
+        gaps = np.argwhere(hist == 0).flatten()
+        idx = np.percentile(gaps, percentile, interpolation='nearest')
+
+        threshold = bin_edges[idx]
+
+        labels = scipy.cluster.hierarchy.fcluster(Z, t=threshold, criterion='distance')
+        k = len(set(labels))
+
+    return labels, k
+
+
+
 class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     """
     Agglomerative Linkage Clustering
@@ -70,28 +99,7 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
 
 
 
-    def mapper_gap_heuristic(self, Z, percentile):
-        merge_distances = Z[:,2]
-        hist, bin_edges = np.histogram(merge_distances, bins='doane')
 
-        # plt.figure()
-        # plt.hist(merge_distances, bins=len(hist))
-        # plt.show()
-
-        if np.alltrue(hist != 0):
-            # print("no gap!")
-            labels = np.ones(Z.shape[0]+1)
-            k = 1
-        else:
-            gaps = np.argwhere(hist == 0).flatten()
-            idx = np.percentile(gaps, percentile, interpolation='nearest')
-
-            threshold = bin_edges[idx]
-
-            labels = scipy.cluster.hierarchy.fcluster(Z, t=threshold, criterion='distance')
-            k = len(set(labels))
-            
-        return labels, k
 
 
 
@@ -137,11 +145,12 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             else:
                 print("cophentic correlation distance: invalid, too few data points")
 
+
         # MAPPER PAPER GAP HEURISTIC
         gap_heuristic_percentiles = {'firstgap': 0, 'midgap': 50, 'lastgap':100}
         if self.heuristic in gap_heuristic_percentiles:
             percentile = gap_heuristic_percentiles[self.heuristic]
-            self.labels_, k = self.mapper_gap_heuristic(Z, percentile)
+            self.labels_, k = mapper_gap_heuristic(Z, percentile, self.k_max)
 
 
 
