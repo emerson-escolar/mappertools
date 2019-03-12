@@ -29,6 +29,12 @@ class EPCover(object):
 
 
 
+        # FOR MAPPER COMPATIBILITY
+        self.n_cubes = resolution
+        self.perc_overlap = "epcover"
+
+
+
     def fit(self, data):
         """ Fit the equalized projection cover on the data.
 
