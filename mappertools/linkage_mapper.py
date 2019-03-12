@@ -17,7 +17,7 @@ def cluster_number_to_threshold(k, merge_distances):
     assert np.all(np.diff(merge_distances) >= 0)
 
     # threshold is kth entry counting from the last.
-    return merge_distances[-k]
+    return (merge_distances[-k] if k <= len(merge_distances) else -np.inf)
 
 
 
@@ -50,22 +50,33 @@ def mapper_gap_heuristic(Z, percentile, k_max=None):
 
 
 
-def DaviesBouldinIndex(X, labels):
+def DaviesBouldinIndex(X, labels, metric):
+    # for lbl in np.unique(labels):
+    #     print(X[labels==lbl])
+    
     return 0
 
+def negative_silhouette(X, labels, metric):
+    return -metrics.silhouette_score(X, labels, metric=metric)
 
 
 
-def statistic_heuristic(X, Z, k_max, statistic=DaviesBouldinIndex):
+def statistic_heuristic(X, metric, Z, k_max, statistic=negative_silhouette):
     merge_distances = Z[:,2]
 
     optimal_stat = np.inf
     optimal_labels, optimal_k = None, None
 
-    for k in range(1, k_max+1):
-        t = cluster_number_to_threshold(k, merge_distances)
+    if k_max == None or k_max > len(merge_distances)-1:
+        k_max = len(merge_distances)
+
+    for k in range(2, k_max+1):
+        threshold = cluster_number_to_threshold(k, merge_distances)
         labels = scipy.cluster.hierarchy.fcluster(Z, t=threshold, criterion='distance')
-        if statistic(X, labels) <  optimal_stat:
+        cur_stat = statistic(X, labels, metric)
+        print(k, cur_stat)
+        if cur_stat <  optimal_stat:
+            optimal_stat = cur_stat
             optimal_labels, optimal_k = labels, k
 
     return optimal_labels, optimal_k
@@ -120,12 +131,6 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         self.verbose = verbose
 
 
-
-
-
-
-
-
     def fit(self, X, y=None):
         """Fit the Linkage clustering on data
 
@@ -165,18 +170,21 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             else:
                 print("cophentic correlation distance: invalid, too few data points")
 
+        # self.labels_, k = statistic_heuristic(X, self.metric, Z, self.k_max, statistic=negative_silhouette)
+
         # MAPPER PAPER GAP HEURISTIC
         gap_heuristic_percentiles = {'firstgap': 0, 'midgap': 50, 'lastgap':100}
         if self.heuristic in gap_heuristic_percentiles:
             percentile = gap_heuristic_percentiles[self.heuristic]
             self.labels_, k = mapper_gap_heuristic(Z, percentile, self.k_max)
         elif self.heuristic == 'db':
-            self.labels_, k = statistic_heuristic(X, Z, self.k_max, statistic=DaviesBouldinIndex):
+            self.labels_, k = statistic_heuristic(X, Z, self.k_max, statistic=DaviesBouldinIndex)
 
 
         # FINAL REPORTING
         if self.verbose and self.metric != 'precomputed':
             print("{} clusters detected".format(k))
+            print(self.labels_)
             if k > 1:
                 print("silhouette score: {}".format(metrics.silhouette_score(X, self.labels_, metric=self.metric)))
             else:
