@@ -62,22 +62,27 @@ def negative_silhouette(X, labels, metric):
 
 
 def statistic_heuristic(X, metric, Z, k_max, statistic=negative_silhouette):
+    # N data points imply length N-1 merge_distances
+    # statistic-based heuristic searches over 2 <= k <= N-1
+    # to avoid trivial clustering.
+
     merge_distances = Z[:,2]
+    N = len(merge_distances) + 1
 
     optimal_stat = np.inf
-    optimal_labels, optimal_k = None, None
+    optimal_labels, optimal_k =  np.array([1]*N), 1
 
-    if k_max == None or k_max > len(merge_distances)-1:
-        k_max = len(merge_distances)
-
-    for k in range(2, k_max+1):
-        threshold = cluster_number_to_threshold(k, merge_distances)
+    for threshold in reversed(np.sort(np.unique(merge_distances))):
         labels = scipy.cluster.hierarchy.fcluster(Z, t=threshold, criterion='distance')
+        cur_k = len(np.unique(labels))
+        if cur_k < 2:
+            continue
+        if cur_k > k_max or cur_k > N-1:
+            break
         cur_stat = statistic(X, labels, metric)
-        print(k, cur_stat)
         if cur_stat <  optimal_stat:
             optimal_stat = cur_stat
-            optimal_labels, optimal_k = labels, k
+            optimal_labels, optimal_k = labels, cur_k
 
     return optimal_labels, optimal_k
 
@@ -127,8 +132,11 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         self.method = method
         self.metric = metric
         self.heuristic = heuristic
-        self.k_max = k_max
         self.verbose = verbose
+
+        if k_max == None:
+            k_max = np.inf
+        self.k_max = k_max
 
 
     def fit(self, X, y=None):
@@ -170,7 +178,7 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             else:
                 print("cophentic correlation distance: invalid, too few data points")
 
-        # self.labels_, k = statistic_heuristic(X, self.metric, Z, self.k_max, statistic=negative_silhouette)
+        #
 
         # MAPPER PAPER GAP HEURISTIC
         gap_heuristic_percentiles = {'firstgap': 0, 'midgap': 50, 'lastgap':100}
@@ -179,11 +187,13 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             self.labels_, k = mapper_gap_heuristic(Z, percentile, self.k_max)
         elif self.heuristic == 'db':
             self.labels_, k = statistic_heuristic(X, Z, self.k_max, statistic=DaviesBouldinIndex)
+        elif self.heuristic == 'sil':
+            self.labels_, k = statistic_heuristic(X, self.metric, Z, self.k_max, statistic=negative_silhouette)
 
 
         # FINAL REPORTING
+        print("{} clusters detected".format(k))
         if self.verbose and self.metric != 'precomputed':
-            print("{} clusters detected".format(k))
             print(self.labels_)
             if k > 1:
                 print("silhouette score: {}".format(metrics.silhouette_score(X, self.labels_, metric=self.metric)))
