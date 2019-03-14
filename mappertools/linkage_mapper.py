@@ -185,8 +185,8 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         if self.heuristic in gap_heuristic_percentiles:
             percentile = gap_heuristic_percentiles[self.heuristic]
             self.labels_, k = mapper_gap_heuristic(Z, percentile, self.k_max)
-        elif self.heuristic == 'db':
-            self.labels_, k = statistic_heuristic(X, Z, self.k_max, statistic=DaviesBouldinIndex)
+        # elif self.heuristic == 'db':
+        #     self.labels_, k = statistic_heuristic(X, Z, self.k_max, statistic=DaviesBouldinIndex)
         elif self.heuristic == 'sil':
             self.labels_, k = statistic_heuristic(X, self.metric, Z, self.k_max, statistic=negative_silhouette)
 
