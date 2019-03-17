@@ -222,9 +222,8 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             self.labels_, k = statistic_heuristic(X, self.metric, Z, self.k_max, statistic=negative_silhouette)
 
         # FINAL REPORTING
-        print("{} clusters detected".format(k))
+        print("{} clusters detected in {} points".format(k,X.shape[0]))
         if self.verbose and self.metric != 'precomputed':
-            print(self.labels_)
             if k > 1:
                 print("silhouette score: {}".format(metrics.silhouette_score(X, self.labels_, metric=self.metric)))
             else:
