@@ -20,6 +20,17 @@ def cluster_number_to_threshold(k, merge_distances):
     return (merge_distances[-k] if k <= len(merge_distances) else -np.inf)
 
 
+def find_histogram_gap(merge_distances, percentile, bins='doane'):
+    hist, bin_edges = np.histogram(merge_distances, bins=bins)
+
+    if np.alltrue(hist != 0):
+        return None
+
+    gaps = np.argwhere(hist == 0).flatten()
+    idx = np.percentile(gaps, percentile, interpolation='nearest')
+    threshold = bin_edges[idx]
+    return threshold
+
 
 def mapper_gap_heuristic(Z, percentile, k_max=None):
     merge_distances = Z[:,2]
@@ -27,22 +38,11 @@ def mapper_gap_heuristic(Z, percentile, k_max=None):
     if k_max != None and k_max != np.inf:
         merge_distances = merge_distances[-k_max:]
 
-    hist, bin_edges = np.histogram(merge_distances, bins='doane')
-
-    # plt.figure()
-    # plt.hist(merge_distances, bins=len(hist))
-    # plt.show()
-
-    if np.alltrue(hist != 0):
-        # print("no gap!")
+    threshold = find_histogram_gap(merge_distances,percentile,'doane')
+    if threshold == None:
         labels = np.ones(Z.shape[0]+1)
         k = 1
     else:
-        gaps = np.argwhere(hist == 0).flatten()
-        idx = np.percentile(gaps, percentile, interpolation='nearest')
-
-        threshold = bin_edges[idx]
-
         labels = scipy.cluster.hierarchy.fcluster(Z, t=threshold, criterion='distance')
         k = len(set(labels))
 
