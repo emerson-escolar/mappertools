@@ -62,6 +62,22 @@ def negative_silhouette(X, labels, metric):
 
 
 def statistic_heuristic(X, metric, Z, k_max, statistic=negative_silhouette):
+    """
+    Hierarchical clustering thresholding by statistic
+
+    Parameters
+    ----------
+    X : array, shape=(n_samples, n_features)
+        original data
+
+    metric :
+
+    Z :
+        hierarchical clustering encoded as a linkage matrix.
+        scipy.cluster.hierarchy.linkage
+
+
+    """
     # N data points imply length N-1 merge_distances
     # statistic-based heuristic searches over 2 <= k <= N-1
     # to avoid trivial clustering.
@@ -201,4 +217,4 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
                 print("silhouette score: invalid, too few final clusters")
 
 
-        return
+        return self
