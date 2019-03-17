@@ -65,23 +65,34 @@ def statistic_heuristic(X, metric, Z, k_max, statistic=negative_silhouette):
     """
     Hierarchical clustering thresholding by statistic
 
+    Determine 'best' clustering by minimizing value of statistic function
+    over different thresholding of the hierarchical clustering Z.
+
     Parameters
     ----------
     X : array, shape=(n_samples, n_features)
         original data
 
-    metric :
+    metric : str or function, optional
+        See the ``scipy.spatial.distance.pdist`` function for a list of valid distance metrics.
+        A custom distance function can also be used.
 
-    Z :
+    Z : array
         hierarchical clustering encoded as a linkage matrix.
-        scipy.cluster.hierarchy.linkage
+        Output of scipy.cluster.hierarchy.linkage applied to X with given metric.
+        It is user responsibility to assure that this is indeed the case.
 
+    k_max : int, optional
+        Maximum number of clusters.
 
+    statistic : function with signature (X,labels,metric -> statistic_value)
+        Statistic function that evaluates the 'goodness' of clustering given by labels.
+        Smaller values are interpreted as better.
     """
+
     # N data points imply length N-1 merge_distances
     # statistic-based heuristic searches over 2 <= k <= N-1
     # to avoid trivial clustering.
-
     merge_distances = Z[:,2]
     N = len(merge_distances) + 1
 
@@ -108,10 +119,10 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     """
     Agglomerative Linkage Clustering
 
-    Instead of specifying n_clusters, uses the "gap heuristic" in the original
-    Mapper paper to decide.
     Uses scipy.cluster.hierarchy algorithms.
     Class is designed to emulate sklearn.cluster format, for compatibility with kmapper.
+
+    Instead of having to specify n_clusters, uses some heuristic to determine number of clusters.
 
     Parameters
     ----------
@@ -119,10 +130,16 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         Which linkage method to use, as available in scipy.cluster.hierarchy.linkage.
 
     metric : str or function, optional
-        If y is a collection of observation vectors, distance metric to use.
-        Ignored otherwise.
         See the ``scipy.spatial.distance.pdist`` function for a list of valid distance metrics.
         A custom distance function can also be used.
+
+    heuristic : {"firstgap", "midgap", "lastgap", "silhouette"}
+        Which heuristic to use to determine number of clusters.
+        first/mid/last gap is based on the original Mapper paper.
+        silhouette uses the silhouette score.
+
+    k_max : int, optional
+        Maximum number of clusters.
 
     Attributes
     ----------
@@ -186,7 +203,6 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
 
         if self.verbose and self.metric != 'precomputed':
             print("*** Linkage Mapper Report ***")
-
             if X.shape[0] > 2:
                 dists = scipy.spatial.distance.pdist(X, metric=self.metric)
                 c, _ = scipy.cluster.hierarchy.cophenet(Z, dists)
@@ -194,7 +210,6 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             else:
                 print("cophentic correlation distance: invalid, too few data points")
 
-        #
 
         # MAPPER PAPER GAP HEURISTIC
         gap_heuristic_percentiles = {'firstgap': 0, 'midgap': 50, 'lastgap':100}
@@ -203,9 +218,8 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             self.labels_, k = mapper_gap_heuristic(Z, percentile, self.k_max)
         # elif self.heuristic == 'db':
         #     self.labels_, k = statistic_heuristic(X, Z, self.k_max, statistic=DaviesBouldinIndex)
-        elif self.heuristic == 'sil':
+        elif self.heuristic == 'sil' or self.heuristic == 'silhouette':
             self.labels_, k = statistic_heuristic(X, self.metric, Z, self.k_max, statistic=negative_silhouette)
-
 
         # FINAL REPORTING
         print("{} clusters detected".format(k))
