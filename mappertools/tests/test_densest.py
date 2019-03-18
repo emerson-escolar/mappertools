@@ -1,6 +1,6 @@
 import pytest
 
-import mappertools.densest_subgraph as ds
+import mappertools.features.densest_subgraph as ds
 import networkx as nx
 import kmapper as km
 import sklearn.cluster
