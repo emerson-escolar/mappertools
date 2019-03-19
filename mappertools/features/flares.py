@@ -20,6 +20,12 @@ class Flare(object):
         self.terminator = d_node
         self.finished = True
 
+    def __str__(self):
+        return "Flare, with birth {} and death {}, members: {}".format(self.birth, self.death, self.nodes)
+
+    def __repr__(self):
+        return self.__str__()
+
 
 
 def find_elder_flare(flares, candidates):
@@ -45,7 +51,7 @@ def flare_detect(G, centrality):
         for nbr in G.adj[node]:
             if centrality[nbr] > cur_cen:
                 continue
-            for flare, idx in enumerate(flares):
+            for idx, flare in enumerate(flares):
                 if not flare.finished and nbr in flare.nodes:
                     death_candidates.add(idx)
         if len(death_candidates) == 0:
@@ -60,6 +66,7 @@ def flare_detect(G, centrality):
 
 
 if __name__ == "__main__":
-    print("hi")
+    G = nx.Graph()
+    G.add_edges_from([(0,1),(1,2),(2,3),(3,4),(0,-1),(-1,-2),(-1,1)])
 
-    flare_detect(None, {2:-1,3:2,1:-1})
+    print(flare_detect(G, nx.centrality.harmonic_centrality(G)))
