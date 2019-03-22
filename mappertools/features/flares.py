@@ -45,8 +45,6 @@ def flare_detect(G, centrality):
 
     flares = []
     for node, cur_cen in sorted(centrality.items(), key=operator.itemgetter(1)):
-        print(node, cur_cen)
-
         death_candidates = set()
         for nbr in G.adj[node]:
             if centrality[nbr] > cur_cen:
@@ -62,8 +60,39 @@ def flare_detect(G, centrality):
                 if idx != elder:
                     flares[idx].terminate(node, cur_cen)
             flares[elder].nodes.add(node)
+
     return flares
 
+
+def percentile_gap_threshold(data, percentile):
+    hist, bin_edges = np.histogram(data, bins='doane')
+    threshold = -np.inf
+    gaps = np.argwhere(hist==0).flatten()
+    if len(gaps) != 0:
+        idx = np.percentile(gaps, 0,interpolation='nearest')
+        threshold = bin_edges[idx]
+    return threshold
+
+
+def threshold_flares(flares, threshold=None):
+    b,d = compute_pd(flares)
+    d[d==None] = np.max(d[d != None])
+
+    lifespans = d-b
+    if threshold == None:
+        threshold = percentile_gap_threshold(lifespans,0)
+    long_flares = []
+    for idx,flare in enumerate(flares):
+        if lifespans[idx] >= threshold:
+            long_flares.append(flare)
+    return long_flares
+
+
+def compute_pd(flares):
+    b = np.array([flare.birth for flare in flares])
+    d = np.array([flare.death for flare in flares])
+
+    return b,d
 
 if __name__ == "__main__":
     G = nx.Graph()
