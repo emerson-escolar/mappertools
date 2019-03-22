@@ -11,7 +11,7 @@ def test_flare():
     assert 1 not in x.nodes
 
 
-def test_detection():
+def test_path_flares():
     G = nx.generators.classic.path_graph(10)
 
     # trivial 'centrality'
@@ -24,3 +24,11 @@ def test_detection():
     cen = nx.centrality.harmonic_centrality(G)
     flares = flr.flare_detect(G,cen)
     assert len(flares) == 2
+
+def test_star_flares():
+    G = nx.generators.classic.star_graph(10)
+
+    # harmonic centrality
+    cen = nx.centrality.harmonic_centrality(G)
+    flares = flr.flare_detect(G,cen)
+    assert len(flares) == 10
