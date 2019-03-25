@@ -94,8 +94,3 @@ def compute_pd(flares):
 
     return b,d
 
-if __name__ == "__main__":
-    G = nx.Graph()
-    G.add_edges_from([(0,1),(1,2),(2,3),(3,4),(0,-1),(-1,-2),(-1,1)])
-
-    print(flare_detect(G, nx.centrality.harmonic_centrality(G)))
