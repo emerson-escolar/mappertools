@@ -6,6 +6,7 @@ import networkx as nx
 import json
 import kmapper as km
 
+import mappertools.features.flares as flr
 
 
 def nxmapper_append_node_member_data(nxgraph, extra_data, transforms=None):
@@ -31,6 +32,23 @@ def nxmapper_append_node_member_data(nxgraph, extra_data, transforms=None):
             nxgraph.nodes[node][key] = fun([data_map[k] for k in membership])
 
     return nxgraph
+
+
+def nxmapper_append_flare_numbers(nxgraph):
+    flares = flr.flare_detect(nxgraph, nx.centrality.harmonic_centrality(nxgraph))
+
+    long_flares = flr.threshold_flares(flares)
+    for idx, flare in enumerate(flares):
+        for node in flare.nodes:
+            nxgraph.nodes[node]['flare'] = idx
+
+    for idx, flare in enumerate(long_flares):
+        for node in flare.nodes:
+            nxgraph.nodes[node]['longflare'] = idx
+
+    return nxgraph
+
+
 
 def nxmapper_append_edge_member_data(nxgraph, extra_data, transforms=None):
     """
@@ -122,6 +140,8 @@ def cytoscapejson_dump(graph, file,
     nxGraph = kmapper_to_nxmapper(graph, counts=True, weights=True)
     nxGraph = nxmapper_append_node_member_data(nxGraph, members_extra_data, node_transforms)
     nxGraph = nxmapper_append_edge_member_data(nxGraph, edges_extra_data, edge_transforms)
+
+    nxGraph = nxmapper_append_flare_numbers(nxGraph)
 
     with open(file, 'w') as outfile:
        json.dump(nx.readwrite.json_graph.cytoscape_data(nxGraph), outfile)
