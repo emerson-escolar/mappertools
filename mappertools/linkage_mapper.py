@@ -202,15 +202,17 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
 
         Z = scipy.cluster.hierarchy.linkage(X, method=self.method, metric=self.metric)
 
-        if self.verbose and self.metric != 'precomputed':
+        if self.verbose:
             print("*** Linkage Mapper Report ***")
             if X.shape[0] > 2:
-                dists = scipy.spatial.distance.pdist(X, metric=self.metric)
+                if self.metric != 'precomputed':
+                    dists = scipy.spatial.distance.pdist(X, metric=self.metric)
+                else:
+                    dists = X
                 c, _ = scipy.cluster.hierarchy.cophenet(Z, dists)
                 print("cophentic correlation distance: {}".format(c))
             else:
                 print("cophentic correlation distance: invalid, too few data points")
-
 
         # MAPPER PAPER GAP HEURISTIC
         gap_heuristic_percentiles = {'firstgap': 0, 'midgap': 50, 'lastgap':100}
@@ -224,11 +226,9 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
 
         # FINAL REPORTING
         print("{} clusters detected in {} points".format(k,X.shape[0]))
-        if self.verbose and self.metric != 'precomputed':
-            if k > 1:
-                print("silhouette score: {}".format(metrics.silhouette_score(X, self.labels_, metric=self.metric)))
-            else:
+        if self.verbose:
+            if k <= 1:
                 print("silhouette score: invalid, too few final clusters")
-
-
+            else:
+                print("silhouette score: {}".format(-negative_silhouette(X, self.labels_, metric=self.metric)))
         return self
