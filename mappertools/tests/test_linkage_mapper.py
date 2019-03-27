@@ -5,6 +5,21 @@ import numpy as np
 
 import mappertools.linkage_mapper as lk
 
+# artificial data with "obvious" clustering
+X = np.array([[0,0,0],
+              [0,1,0],
+              [1,0,0],
+              [0,0,1],
+              [100,0,0],
+              [100,1,0],
+              [101,0,0],
+              [100,0,1],
+              [0,0,100],
+              [0,1,100],
+              [1,0,100],
+              [0,0,101]])
+
+
 def test_num_clusters():
     X = np.random.normal(size=(400,2))
 
@@ -19,20 +34,6 @@ def test_num_clusters():
 
 
 def test_heuristics():
-    # artificial data with "obvious" clustering
-    X = np.array([[0,0,0],
-                  [0,1,0],
-                  [1,0,0],
-                  [0,0,1],
-                  [100,0,0],
-                  [100,1,0],
-                  [101,0,0],
-                  [100,0,1],
-                  [0,0,100],
-                  [0,1,100],
-                  [1,0,100],
-                  [0,0,101]])
-
     fg = lk.LinkageMapper(heuristic='firstgap').fit(X)
     assert len(np.unique(fg.labels_)) == 3
 
@@ -41,19 +42,6 @@ def test_heuristics():
 
 
 def test_heuristics_precomputed():
-    # artificial data with "obvious" clustering
-    X = np.array([[0,0,0],
-                  [0,1,0],
-                  [1,0,0],
-                  [0,0,1],
-                  [100,0,0],
-                  [100,1,0],
-                  [101,0,0],
-                  [100,0,1],
-                  [0,0,100],
-                  [0,1,100],
-                  [1,0,100],
-                  [0,0,101]])
     dists = spd.pdist(X)
 
     fg = lk.LinkageMapper(heuristic='firstgap', metric='precomputed').fit(dists)
