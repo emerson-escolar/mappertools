@@ -57,7 +57,10 @@ def DaviesBouldinIndex(X, labels, metric):
     return 0
 
 def negative_silhouette(X, labels, metric):
-    return -metrics.silhouette_score(X, labels, metric=metric)
+    if metric == 'precomputed':
+        return -metrics.silhouette_score(scipy.spatial.distance.squareform(X), labels, metric=metric)
+    else:
+        return -metrics.silhouette_score(X, labels, metric=metric)
 
 
 
@@ -178,15 +181,13 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         Parameters
         ----------
         X : ndarray
-            A condensed distance matrix. A condensed distance matrix
+            A collection of `m` observation vectors in `n` dimensions
+            as an `m` by `n` array.
+
+            Alternatively, a condensed distance matrix. A condensed distance matrix
             is a flat array containing the upper triangular of the distance matrix.
             This is the form that ``pdist`` returns. All elements of the condensed
             distance matrix must be finite, i.e. no NaNs or infs.
-
-            Alternatively, a collection of `m` observation vectors in `n` dimensions
-            as an `m` by `n` array.
-
-            If self.metric is a distance matrix, overrides behaviour and uses that distance instead!
 
         y : ignored
 
@@ -216,10 +217,10 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         if self.heuristic in gap_heuristic_percentiles:
             percentile = gap_heuristic_percentiles[self.heuristic]
             self.labels_, k = mapper_gap_heuristic(Z, percentile, self.k_max)
-        # elif self.heuristic == 'db':
-        #     self.labels_, k = statistic_heuristic(X, Z, self.k_max, statistic=DaviesBouldinIndex)
         elif self.heuristic == 'sil' or self.heuristic == 'silhouette':
             self.labels_, k = statistic_heuristic(X, self.metric, Z, self.k_max, statistic=negative_silhouette)
+        else:
+            pass
 
         # FINAL REPORTING
         print("{} clusters detected in {} points".format(k,X.shape[0]))
