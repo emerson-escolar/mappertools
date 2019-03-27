@@ -49,3 +49,29 @@ def test_heuristics_precomputed():
 
     sil = lk.LinkageMapper(heuristic='sil', metric='precomputed').fit(dists)
     assert len(np.unique(sil.labels_)) == 3
+
+
+
+def test_local_PCA():
+    # check that we're just doing pca
+
+    X_local = lk.PreTransformPCA(pc_axes=[0,1]).transform(X)
+
+    actual_pca = lk.sklearn.decomposition.PCA(2).fit(X)
+    X_pca = actual_pca.transform(X)
+
+    X_precomputed = lk.PreTransformPCA(pc_axes=[0,1], precomputed=actual_pca).transform(X)
+
+    assert np.allclose(X_local, X_pca)
+    assert np.allclose(X_pca, X_precomputed)
+
+
+
+def test_local_PCA_with_clustering():
+    pt = lk.PreTransformPCA(pc_axes=[0,1])
+
+    fg = lk.LinkageMapper(heuristic='firstgap', pre_transform=pt).fit(X)
+    assert len(np.unique(fg.labels_)) == 3
+
+    sil = lk.LinkageMapper(heuristic='sil', pre_transform=pt).fit(X)
+    assert len(np.unique(sil.labels_)) == 3

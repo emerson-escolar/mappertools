@@ -1,14 +1,15 @@
 import sklearn.cluster
 import sklearn.base
+import sklearn.decomposition
+
 import numpy as np
+
 import scipy.cluster.hierarchy
 import scipy.spatial.distance
 
 import matplotlib.pyplot as plt
 
 from sklearn import metrics
-
-
 
 
 
@@ -118,6 +119,25 @@ def statistic_heuristic(X, metric, Z, k_max, statistic=negative_silhouette):
 
 
 
+
+class PreTransformPCA(object):
+    def __init__(self, pc_axes, precomputed=None):
+        self.pc_axes = pc_axes
+        self.precomputed = precomputed
+
+    def transform(self, X):
+        if X.shape[0]==1:
+            return X
+
+        if self.precomputed != None:
+            pca = self.precomputed
+        else:
+            pca = sklearn.decomposition.PCA(n_components=np.max(self.pc_axes)+1)
+            pca.fit(X)
+        return pca.transform(X)[:,self.pc_axes]
+
+
+
 class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     """
     Agglomerative Linkage Clustering
@@ -141,6 +161,9 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         first/mid/last gap is based on the original Mapper paper.
         silhouette uses the silhouette score.
 
+    pre_transform :
+        a class instance with a transform method
+
     k_max : int, optional
         Maximum number of clusters.
 
@@ -163,16 +186,20 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     """
 
     def __init__(self, method='single', metric='euclidean', heuristic='firstgap',
-                 k_max=None, verbose=1):
+                 pre_transform = None, k_max=None, verbose=1):
 
         self.method = method
         self.metric = metric
         self.heuristic = heuristic
         self.verbose = verbose
+        self.pre_transform = pre_transform
 
         if k_max == None:
             k_max = np.inf
         self.k_max = k_max
+
+        if self.metric == 'precomputed' and self.pre_transform != None:
+            raise RuntimeError("Using pre_transform not valid with precomputed metric!")
 
 
     def fit(self, X, y=None):
@@ -195,6 +222,9 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         -------
         self
         """
+
+        if self.pre_transform != None:
+            X = self.pre_transform.transform(X)
 
         if len(X.shape) == 2 and X.shape[0] == 1:
             self.labels_ = np.array([1])
