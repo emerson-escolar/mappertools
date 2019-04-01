@@ -255,8 +255,8 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             pass
 
         # FINAL REPORTING
-        print("{} clusters detected in {} points".format(k,X.shape[0]))
         if self.verbose:
+            print("{} clusters detected in {} points".format(k,X.shape[0]))
             if k <= 1:
                 print("silhouette score: invalid, too few final clusters")
             else:
