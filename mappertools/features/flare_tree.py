@@ -10,7 +10,7 @@ class Flare(object):
         self.nodes = set([node])
 
         self.birth = (birth, node)
-        self.death = (None, None)
+        self.death = (np.inf, None)
 
     def __str__(self):
         return "Flare, with birth {} and death {}, members: {}".format(self.birth, self.death, self.nodes)
@@ -66,8 +66,11 @@ class FlareTree:
 def unpack_flares(flare_trees):
     return [subtree.flare for tree in flare_trees for subtree in tree]
 
+def sort_flares(flare_list):
+    return sorted(flare_list, key=(lambda flare:flare.death[0] - flare.birth[0]),reverse=True)
 
-def flare_detect(G, centrality, verbose=True):
+
+def flare_detect(G, centrality, verbose=False):
     if isinstance(centrality, str): centrality = G.nodes.data(centrality)
 
     flare_trees = set([])
@@ -79,7 +82,7 @@ def flare_detect(G, centrality, verbose=True):
 
         death_candidates = [tree for tree in flare_trees if tree.intersects(neighbors)]
         if len(death_candidates) == 0:
-            print("birth")
+            # print("birth")
             new_tree = FlareTree(flare=Flare(node, cur_cen))
             flare_trees.add(new_tree)
         else:
@@ -94,7 +97,7 @@ def flare_detect(G, centrality, verbose=True):
         # for tree in flare_trees:
         #     tree.print_all()
         # print()
-    ans = unpack_flares(flare_trees)
+    ans = sort_flares(unpack_flares(flare_trees))
     return ans
 
 
