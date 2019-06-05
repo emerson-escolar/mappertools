@@ -30,12 +30,18 @@ class FlareTree:
         self.parent = parent
 
     def __iter__(self):
+        """
+        iterates through self and all subtrees (not just direct children)
+        """
         # https://stackoverflow.com/a/6915269
         yield self
         for subtree in itertools.chain(*map(iter, self.children)):
             yield subtree
 
     def __contains__(self, item):
+        """
+        checks whether or not item is contained in self or any subtree
+        """
         for subtree in self:
             if item in subtree.flare: return True
         return False
@@ -61,16 +67,17 @@ def unpack_flares(flare_trees):
     return [subtree.flare for tree in flare_trees for subtree in tree]
 
 
-def flare_detect(G, centrality):
+def flare_detect(G, centrality, verbose=True):
     if isinstance(centrality, str): centrality = G.nodes.data(centrality)
 
     flare_trees = set([])
     for node, cur_cen in sorted(centrality.items(), key=operator.itemgetter(1)):
-        print("node", node)
         neighbors = [nbr for nbr in G.adj[node] if centrality[nbr] <= cur_cen]
-        print("nbhrs", neighbors)
-        death_candidates = [tree for tree in flare_trees if tree.intersects(neighbors)]
 
+        if verbose:
+            print("node: {}, centrality: {}, neighbors: {}".format(node, cur_cen, neighbors))
+
+        death_candidates = [tree for tree in flare_trees if tree.intersects(neighbors)]
         if len(death_candidates) == 0:
             print("birth")
             new_tree = FlareTree(flare=Flare(node, cur_cen))
@@ -83,11 +90,12 @@ def flare_detect(G, centrality):
                     tree.flare.death = (cur_cen, node)
                     elder_tree.add_subtree(tree)
             elder_tree.flare.nodes.add(node)
-        for tree in flare_trees:
-            tree.print_all()
-        print()
 
-    return unpack_flares(flare_trees)
+        # for tree in flare_trees:
+        #     tree.print_all()
+        # print()
+    ans = unpack_flares(flare_trees)
+    return ans
 
 
 if __name__ == "__main__":
