@@ -75,7 +75,7 @@ def flare_detect(G, centrality, verbose=False):
 
     flare_trees = set([])
     for node, cur_cen in sorted(centrality.items(), key=operator.itemgetter(1)):
-        neighbors = [nbr for nbr in G.adj[node] if centrality[nbr] <= cur_cen]
+        neighbors = [nbr for nbr in G[node] if centrality[nbr] <= cur_cen]
 
         if verbose:
             print("node: {}, centrality: {}, neighbors: {}".format(node, cur_cen, neighbors))

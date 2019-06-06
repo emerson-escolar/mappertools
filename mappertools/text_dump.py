@@ -35,11 +35,24 @@ def nxmapper_append_node_member_data(nxgraph, extra_data, transforms=None):
 
 
 def nxmapper_append_flare_numbers(nxgraph):
-    flares = flr.flare_detect(nxgraph, nx.centrality.harmonic_centrality(nxgraph))
 
-    for idx, flare in enumerate(flares):
-        for node in flare.nodes:
-            nxgraph.nodes[node]['flare'] = idx
+    choices = ((nx.centrality.harmonic_centrality, "H"),
+               (nx.centrality.closeness_centrality, "C"),
+               (nx.centrality.betweenness_centrality, "B")
+               )
+
+    for fun, code in choices:
+        centrality = fun(nxgraph)
+        flares = flr.flare_detect(nxgraph, centrality)
+
+        label = code + 'flare'
+        for idx, flare in enumerate(flares):
+            for node in flare.nodes:
+                nxgraph.nodes[node][label] = idx
+
+        label = code + 'centrality'
+        for node, cen in centrality.items():
+            nxgraph.nodes[node][label] = cen
 
     # long_flares = flr.threshold_flares(flares)
     # for idx, flare in enumerate(long_flares):
