@@ -43,7 +43,7 @@ def nxmapper_append_flare_numbers(nxgraph):
 
     for fun, code in choices:
         centrality = fun(nxgraph)
-        flares = flr.flare_detect(nxgraph, centrality)
+        flares = flr.flare_detect(nxgraph, centrality, prune_threshold=0.01)
 
         label = code + 'flare'
         for idx, flare in enumerate(flares):

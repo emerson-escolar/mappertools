@@ -21,6 +21,8 @@ class Flare(object):
     def __contains__(self, node):
         return node in self.nodes
 
+    def lifespan(self):
+        return self.death[0] - self.birth[0]
     
 
 class FlareTree:
@@ -58,6 +60,17 @@ class FlareTree:
             tree.parent = self
             self.children.add(tree)
 
+    def collapse_subtree(self, tree):
+        if tree not in self.children or not (self is tree.parent):
+            raise RuntimeWarning("Cannot collapse tree, not valid child. Ignoring")
+        else:
+            tree_nodes = set().union(*(subtree.flare.nodes for subtree in tree))
+            self.flare.nodes = self.flare.nodes.union(tree_nodes)
+
+            tree.parent = None
+            self.children.remove(tree)
+
+
     def print_all(self):
         for subtree in self:
             print(subtree.flare)
@@ -70,7 +83,7 @@ def sort_flares(flare_list):
     return sorted(flare_list, key=(lambda flare:flare.death[0] - flare.birth[0]),reverse=True)
 
 
-def flare_detect(G, centrality, verbose=False):
+def flare_detect(G, centrality, prune_threshold=0, verbose=False):
     if isinstance(centrality, str): centrality = G.nodes.data(centrality)
 
     flare_trees = set([])
@@ -92,6 +105,9 @@ def flare_detect(G, centrality, verbose=False):
                     flare_trees.remove(tree)
                     tree.flare.death = (cur_cen, node)
                     elder_tree.add_subtree(tree)
+                    if tree.flare.lifespan() < prune_threshold:
+                        elder_tree.collapse_subtree(tree)
+                    
             elder_tree.flare.nodes.add(node)
 
         # for tree in flare_trees:
