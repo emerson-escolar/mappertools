@@ -5,44 +5,41 @@ def get_nodes_containing_member(G, member, query_data='unique_members'):
     return (node for node in G if member in G.nodes[node][query_data])
 
 
-def compute_member_core_shell(G, member, query_data='unique_members'):
-    member_core = []
-    member_shell = []
-
-    G_member = set(get_nodes_containing_member(G, member, query_data))
-    for x in G_member:
+def compute_core_shell(G, H):
+    core = []
+    shell = []
+    for x in H:
         for y in G[x]:
-            if y not in G_member:
-                member_shell.append(x)
+            if y not in H:
+                shell.append(x)
                 break
         else:
             # yes this is not a bug. 'else' is aligned with 'for'
-            member_core.append(x)
+            core.append(x)
 
-    return G_member, member_core, member_shell
+    return core, shell
 
 
-def compute_flareness(G, member, weight=(lambda v,u,e: 1), query_data='unique_members',verbose=0):
-    G_member_nodes, core, shell = compute_member_core_shell(G, member, query_data)
+def compute_flareness(G, member,
+                      weight=(lambda v,u,e: 1), query_data='unique_members',
+                      verbose=0):
+    G_member = set(get_nodes_containing_member(G, member, query_data))
+    core, shell = compute_core_shell(G, G_member)
 
-    if len(G_member_nodes) == 0:
+    if len(G_member) == 0:
         print("member {} not found. Ignoring".format(member))
         return
-    
-    # assert(G_member_nodes == set(core).union(shell))
+
     if verbose > 0:
-        print("G_member_nodes: ", G_member_nodes)
+        print("G_member: ", G_member)
         print("core: ", core)
         print("shell: ", shell)
 
-    G_member = G.subgraph(G_member_nodes)
+    G_member_subgraph = G.subgraph(G_member)
     distances = {}
     if len(shell) > 0:
-        distances = nx.multi_source_dijkstra_path_length(G_member, shell,weight=weight)
-
-    if verbose > 0:
-        print(distances)
-
+        distances = nx.multi_source_dijkstra_path_length(G_member_subgraph,shell,
+                                                         weight=weight)
     k = []
     for L in nx.connected_components(G.subgraph(core)):
         k_L = -np.inf
