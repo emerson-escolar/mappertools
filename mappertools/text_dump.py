@@ -6,7 +6,7 @@ import networkx as nx
 import json
 import kmapper as km
 
-import mappertools.features.flare_tree as flr
+import mappertools.features.flare_tree as flare_tree
 
 
 def nxmapper_append_node_member_data(nxgraph, extra_data, transforms=None):
@@ -43,7 +43,7 @@ def nxmapper_append_flare_numbers(nxgraph):
 
     for fun, code in choices:
         centrality = fun(nxgraph)
-        flares = flr.flare_detect(nxgraph, centrality, prune_threshold=0.01)
+        flares = flare_tree.flare_detect(nxgraph, centrality, prune_threshold=0.01)
 
         label = code + 'flare'
         for idx, flare in enumerate(flares):
@@ -53,11 +53,6 @@ def nxmapper_append_flare_numbers(nxgraph):
         label = code + 'centrality'
         for node, cen in centrality.items():
             nxgraph.nodes[node][label] = cen
-
-    # long_flares = flr.threshold_flares(flares)
-    # for idx, flare in enumerate(long_flares):
-    #     for node in flare.nodes:
-    #         nxgraph.nodes[node]['longflare'] = idx
 
     return nxgraph
 
@@ -88,13 +83,13 @@ def nxmapper_append_edge_member_data(nxgraph, extra_data, transforms=None):
     return nxgraph
 
 
-def kmapper_to_nxmapper(graph, counts=True, weights=True):
+def nxmapper_append_basic_data(nxgraph, counts=True, weights=True, flares=False):
     """
-    Convenience function for turning kmapper output into networkx format with extra data
+    Convenience function for appending networkx format mapper graph with counts and weights
 
-    Assumptions
-    -----------
-    graph is a kmapper output graph
+    Assumption
+    ----------
+    Each node in nxgraph has 'membership' data that contains indices of original observations.
 
     Parameters
     ----------
@@ -103,9 +98,11 @@ def kmapper_to_nxmapper(graph, counts=True, weights=True):
 
     weights : bool
         whether or not to append membership 'weight' data to edges
+
+    flares : bool
+        whether or not to append 'flare index' data to nodes, as computed by persistence-based algorithm
     """
 
-    nxgraph = km.adapter.to_nx(graph)
 
     # Append edge membership
     for u,v in nxgraph.edges:
@@ -123,13 +120,20 @@ def kmapper_to_nxmapper(graph, counts=True, weights=True):
         for node, membership in nxgraph.nodes.data('membership'):
             nxgraph.nodes[node]["count"] = len(membership)
 
+    if flares:
+        nxGraph = nxmapper_append_flare_numbers(nxgraph)
+
     return nxgraph
 
-def cytoscapejson_dump(graph, file,
-                       members_extra_data, edges_extra_data,
-                       node_transforms=None, edge_transforms=None, compute_flares=False):
+
+
+def kmapper_to_nxmapper(graph, file,
+                        members_extra_data, edges_extra_data,
+                        node_transforms=None, edge_transforms=None,
+                        counts = True, weights = True, flares=False):
     """
-    Dump kmapper graph, with extra data, as cytoscape json file.
+    Convenience function for converting kmapper graph to networkx format
+    and appending extra data.
 
     Assumptions
     -----------
@@ -148,19 +152,32 @@ def cytoscapejson_dump(graph, file,
 
     edge_transforms: dict {key : function}
         For each *key*, apply *function* to the extra_data appended to edges
+
+    counts : bool
+        whether or not to append membership 'count' data to nodes and edges, and 'weight' data to edges.
+
+    weights : bool
+        whether or not to append membership 'weight' data to edges
+
+    flares : bool
+        whether or not to append 'flare index' data to nodes, as computed by persistence-based algorithm
     """
 
-    nxGraph = kmapper_to_nxmapper(graph, counts=True, weights=True)
+    nxGraph = km.adapter.to_nx(graph)
+    nxGraph = nxmapper_append_basic_data(nxGraph, counts, weights, flares)
     nxGraph = nxmapper_append_node_member_data(nxGraph, members_extra_data, node_transforms)
     nxGraph = nxmapper_append_edge_member_data(nxGraph, edges_extra_data, edge_transforms)
 
-    if compute_flares:
-        nxGraph = nxmapper_append_flare_numbers(nxGraph)
-
-    with open(file, 'w') as outfile:
-       json.dump(nx.readwrite.json_graph.cytoscape_data(nxGraph), outfile)
-
     return nxGraph
+
+
+
+def cytoscapejson_dump(nxgraph, file):
+    with open(file, 'w') as outfile:
+       json.dump(nx.readwrite.json_graph.cytoscape_data(nxgraph), outfile)
+
+    return nxgraph
+    
 
 
 
@@ -176,21 +193,6 @@ def _compute_averages(data, graph, averager=(lambda x: numpy.mean(x, axis=0))):
     ans.columns=columns
 
     return ans.T
-
-
-def cytoscapejson_dump_with_averages(data, graph, file, averager=(lambda x: numpy.mean(x, axis=0))):
-    nxGraph = km.adapter.to_nx(graph)
-
-    aves = _compute_averages(data, graph, averager)
-
-    for key, value_dicts in aves.to_dict('index').items():
-        nx.set_node_attributes(nxGraph, value_dicts, key)
-
-    with open(file, 'w') as outfile:
-        json.dump(nx.readwrite.json_graph.cytoscape_data(nxGraph), outfile)
-
-    return nxGraph
-
 
 
 
