@@ -9,6 +9,9 @@ import kmapper as km
 import mappertools.features.flare_tree as flare_tree
 
 
+
+### ******************** networkx-based outputs ********************
+
 def nxmapper_append_node_member_data(nxgraph, extra_data, transforms=None):
     """
     Assumptions
@@ -171,14 +174,40 @@ def kmapper_to_nxmapper(graph,
     return nxGraph
 
 
+### ******************** cytoscape json outputs ********************
 
 def cytoscapejson_dump(nxgraph, file):
     with open(file, 'w') as outfile:
        json.dump(nx.readwrite.json_graph.cytoscape_data(nxgraph), outfile)
 
     return nxgraph
-    
 
+
+
+### ******************** text file outputs ********************
+
+def kmapper_text_dump(graph, outfile, labels=None):
+    print("Nodes", file=outfile)
+    for node, members in graph['nodes'].items():
+        print("#" + node, file=outfile)
+        print(len(members), file=outfile)
+
+        if not labels == None:
+            for mem in members:
+                print(labels[mem], file=outfile)
+        else:
+            print(members, file=outfile)
+
+
+    print("Links", file=outfile)
+    for cluster, links in graph['links'].items():
+        print(cluster, file=outfile)
+        print(links, file=outfile)
+
+    if not labels == None:
+        print("Labels", file=outfile)
+        for idx, val in enumerate(labels):
+            print(str(idx) + " " + str(val), file=outfile)
 
 
 def _compute_averages(data, graph, averager=(lambda x: numpy.mean(x, axis=0))):
@@ -195,36 +224,13 @@ def _compute_averages(data, graph, averager=(lambda x: numpy.mean(x, axis=0))):
     return ans.T
 
 
-
-
-def kmapper_text_dump(graph, file, labels=None):
-    print("Nodes", file=file)
-    for node, members in graph['nodes'].items():
-        print("#" + node, file=file)
-        print(len(members), file=file)
-
-        if not labels == None:
-            for mem in members:
-                print(labels[mem], file=file)
-        else:
-            print(members, file=file)
-
-
-    print("Links", file=file)
-    for cluster, links in graph['links'].items():
-        print(cluster, file=file)
-        print(links, file=file)
-
-    if not labels == None:
-        print("Labels", file=file)
-        for idx, val in enumerate(labels):
-            print(str(idx) + " " + str(val), file=file)
-
-
-def kmapper_dump_cluster_averages(data, graph, file, averager=(lambda x: numpy.mean(x, axis=0))):
+def kmapper_dump_cluster_averages(data, graph, outfile,
+                                  averager=(lambda x: numpy.mean(x, axis=0))):
     aves = _compute_averages(data, graph, averager)
-    aves.to_csv(file, index=True, sep='\t')
+    aves.to_csv(outfile, index=True, sep='\t')
 
+
+### ******************** utilities ********************
 
 def kmapper_clean_graph(graph, min_num_members=2):
     ans = copy.deepcopy(graph)
