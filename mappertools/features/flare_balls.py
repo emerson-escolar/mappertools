@@ -36,7 +36,7 @@ def compute_flareness(G, member,
     core, shell = compute_core_shell(G, G_member)
 
     if len(G_member) == 0:
-        print("Member {} not found. Ignoring".format(member))
+        if verbose > 0: print("Member {} not found. Ignoring".format(member))
         return None, None
 
     if verbose > 0:
@@ -60,10 +60,10 @@ def compute_flareness(G, member,
 
 
 
-def compute_all_summary(G, members, weight=(lambda v,u,e: 1), query_data='unique_members'):
+def compute_all_summary(G, members, weight=(lambda v,u,e: 1), query_data='unique_members', verbose=0):
     ans = pandas.DataFrame(columns=['type','k_C','k_vec'],index=members)
     for member in members:
-        k, _ = compute_flareness(G, member, weight, query_data)
+        k, _ = compute_flareness(G, member, weight, query_data, verbose)
         if k is None:
             ans.loc[member] = pandas.Series({'type':-1, 'k_C':None, 'k_vec':None})
         elif len(k) == 0:
