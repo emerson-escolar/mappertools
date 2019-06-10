@@ -127,7 +127,7 @@ def nxmapper_append_basic_data(nxgraph, counts=True, weights=True, flares=False)
 
 
 
-def kmapper_to_nxmapper(graph, file,
+def kmapper_to_nxmapper(graph,
                         members_extra_data, edges_extra_data,
                         node_transforms=None, edge_transforms=None,
                         counts = True, weights = True, flares=False):
