@@ -106,45 +106,22 @@ def has_flare(k):
 def is_pure_island(k):
     return len(k) > 0 and np.alltrue(np.array(k) == np.inf)
 
+def finmax(k):
+    return max(np.array(k)[np.array(k) != np.inf])
 
-def flareness_report(G, members, weight=(lambda v,u,e: 1), query_data='unique_members'):
-    flareness, not_flare_nor_island, not_found = compute_all_flareness(G,members,weight,query_data)
-
-    pure_island = []
-    both = []
-    flare = []
-    for firm, k in flareness.items():
-        if is_pure_island(k):
-            pure_island.append(firm)
-        elif has_flare(k):
-            if has_island(k):
-                both.append(firm)
-            else:
-                flare.append(firm)
-
-    flare = sorted(flare, key=lambda x:max(flareness[x]))
-
-    print("***PURE ISLAND***")
-    for x in pure_island:
-        print(x)
-    print()
-
-    print("***FLARE AND ISLAND***")
-    for x in both:
-        print(x, flareness[x])
-    print()
-
-    print("***FLARE ONLY***")
-    for x in flare:
-        print(x, flareness[x])
-    print()
-
-    print("***NOT FLARE NOR ISLAND***")
-    for x in not_flare_nor_island:
-        print(x)
-    print()
-
-
-    print("***NOT FOUND***")
-    for x in not_found:
-        print(x)
+def flare_type_index(flare_signature):
+    if len(flare_signature) == 0:
+        k_type = 0
+        k_index = 0
+    elif is_pure_island(flare_signature):
+        k_type = 3
+        k_index = np.inf
+    else:
+        # not pure island and nonempty implies has flare
+        assert has_flare(flare_signature)
+        k_index = finmax(flare_signature)
+        if has_island(flare_signature):
+            k_type = 2
+        else:
+            k_type = 1
+    return (k_type, k_index)
