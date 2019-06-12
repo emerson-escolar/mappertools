@@ -131,7 +131,7 @@ def nxmapper_append_basic_data(nxgraph, counts=True, weights=True, flares=False)
 
 
 def kmapper_to_nxmapper(graph,
-                        members_extra_data, edges_extra_data,
+                        node_extra_data=None, edge_extra_data=None,
                         node_transforms=None, edge_transforms=None,
                         counts = True, weights = True, flares=False):
     """
@@ -144,13 +144,13 @@ def kmapper_to_nxmapper(graph,
 
     Parameters
     ----------
-    members_extra_data : dict of dicts {key : {index : data}}
+    node_extra_data : dict of dicts {key : {index : data}}
         For each node, for each *key*, append list of *data* corresponding to its list of member *index*es
 
     node_transforms: dict {key : function}
         For each *key*, apply *function* to the extra_data appended to nodes
 
-    edges_extra_data : dict of dicts {key : {index : data}}
+    edge_extra_data : dict of dicts {key : {index : data}}
         For each edge, for each *key*, append list of *data* corresponding to its list of member *index*es
 
     edge_transforms: dict {key : function}
@@ -168,8 +168,10 @@ def kmapper_to_nxmapper(graph,
 
     nxGraph = km.adapter.to_nx(graph)
     nxGraph = nxmapper_append_basic_data(nxGraph, counts, weights, flares)
-    nxGraph = nxmapper_append_node_member_data(nxGraph, members_extra_data, node_transforms)
-    nxGraph = nxmapper_append_edge_member_data(nxGraph, edges_extra_data, edge_transforms)
+    if node_extra_data:
+        nxGraph = nxmapper_append_node_member_data(nxGraph, node_extra_data, node_transforms)
+    if edge_extra_data:
+        nxGraph = nxmapper_append_edge_member_data(nxGraph, edge_extra_data, edge_transforms)
 
     return nxGraph
 
