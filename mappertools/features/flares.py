@@ -3,6 +3,9 @@ import numpy as np
 import operator
 
 
+# EXPERIMENTAL
+# Probably wrong.
+
 class Flare(object):
     def __init__(self, node, birth):
         self.nodes = set([node])
