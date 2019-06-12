@@ -68,35 +68,11 @@ def compute_all_summary(G, members, weight=(lambda v,u,e: 1),
         k, _ = compute_flareness(G, member, weight, query_data, verbose)
         if k is None and keep_missing:
             ans.loc[member] = pandas.Series({'type':-1, 'k_C':None, 'k_vec':None})
-        elif len(k) == 0:
-            ans.loc[member] = pandas.Series({'type':0, 'k_C':0, 'k_vec':k})
         else:
-            if is_pure_island(k):
-                ans.loc[member] = pandas.Series({'type':3, 'k_C':np.inf, 'k_vec':k})
-            elif has_flare(k):
-                k_C = max(np.array(k)[np.array(k) != np.inf])
-                if has_island(k):
-                    ans.loc[member] = pandas.Series({'type':2, 'k_C':k_C, 'k_vec':k})
-                else:
-                    ans.loc[member] = pandas.Series({'type':1, 'k_C':k_C, 'k_vec':k})
+            k_type, k_index = flare_type_index(k)
+            ans.loc[member] = pandas.Series({'type':k_type, 'k_C':k_index, 'k_vec':k})
+
     return ans
-
-
-
-def compute_all_flareness(G, members, weight=(lambda v,u,e: 1), query_data='unique_members'):
-    not_found = []
-    not_flare_nor_island = []
-    flareness = {}
-    for member in members:
-        k, _ = compute_flareness(G, member, weight, query_data)
-        if k is None:
-            not_found.append(member)
-        elif len(k) == 0:
-            not_flare_nor_island.append(member)
-        else:
-            flareness[member] = k
-
-    return (flareness, not_flare_nor_island, not_found)
 
 
 def has_island(k):
