@@ -63,11 +63,13 @@ def compute_flareness(G, member,
 def compute_all_summary(G, members, weight=(lambda v,u,e: 1),
                         query_data='unique_members', verbose=0,
                         keep_missing=False):
-    ans = pandas.DataFrame(columns=['type','k_C','k_vec'],index=members)
+    ans = pandas.DataFrame(columns=['type','k_C','k_vec'])
     for member in members:
         k, _ = compute_flareness(G, member, weight, query_data, verbose)
-        if k is None and keep_missing:
-            ans.loc[member] = pandas.Series({'type':-1, 'k_C':None, 'k_vec':None})
+        if k is None:
+            if keep_missing:
+                ans.loc[member] = pandas.Series({'type':-1, 'k_C':None, 'k_vec':None})
+            continue
         else:
             k_type, k_index = flare_type_index(k)
             ans.loc[member] = pandas.Series({'type':k_type, 'k_C':k_index, 'k_vec':k})
