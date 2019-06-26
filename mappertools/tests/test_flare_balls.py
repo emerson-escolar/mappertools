@@ -56,3 +56,24 @@ def test_flareness():
 
     # length 4 path to exit core, 5 to 1
     assert k[0] == 4
+
+def test_island():
+    G = nx.path_graph(6)
+    for node in G.nodes:
+        G.nodes[node]['unique_members'] = ['foo']
+
+    k, components = fb.compute_flareness(G, 'foo')
+    assert len(k) == 1
+    assert k[0] == np.inf
+
+
+def test_flare_and_island():
+    G = nx.disjoint_union(nx.path_graph(6), nx.path_graph(4))
+    for node in G.nodes:
+        G.nodes[node]['unique_members'] = ['foo']
+    G.nodes[0]['unique_members'] = ['bar']
+
+    k, components = fb.compute_flareness(G, 'foo')
+    assert len(k) == 2
+
+    assert set(k) == {4, np.inf}
