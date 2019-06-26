@@ -38,3 +38,21 @@ def test_flare_signature():
         comp_type, comp_index = fb.flare_type_index(k)
         assert k_type == comp_type
         assert k_index == comp_index
+
+
+def test_flareness():
+    G = nx.path_graph(6)
+    for node in G.nodes:
+        G.nodes[node]['unique_members'] = ['foo']
+    G.nodes[0]['unique_members'] = ['bar']
+
+    # vertices are as follows
+    # core: 5, 4, 3, 2
+    # shell: 1
+    # outside: 0
+
+    k, components = fb.compute_flareness(G, 'foo')
+    assert len(k) == 1
+
+    # length 4 path to exit core, 5 to 1
+    assert k[0] == 4
