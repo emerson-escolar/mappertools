@@ -33,13 +33,13 @@ def find_histogram_gap(merge_distances, percentile, bins='doane'):
     return threshold
 
 
-def mapper_gap_heuristic(Z, percentile, k_max=None):
+def mapper_gap_heuristic(Z, percentile, k_max=None, bins="fd"):
     merge_distances = Z[:,2]
 
     if k_max != None and k_max != np.inf:
         merge_distances = merge_distances[-k_max:]
 
-    threshold = find_histogram_gap(merge_distances,percentile,'doane')
+    threshold = find_histogram_gap(merge_distances,percentile, bins)
     if threshold == None:
         labels = np.ones(Z.shape[0]+1)
         k = 1
@@ -161,6 +161,11 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         first/mid/last gap is based on the original Mapper paper.
         silhouette uses the silhouette score.
 
+    bins :
+        Which heuristic to use for the histogram binning in the
+        "gap"-based heuristics (firstgap, midgap, lastgap).
+        Refer to numpy.histogram_bin_edges for choices.
+
     pre_transform :
         a class instance with a transform method
 
@@ -186,11 +191,12 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     """
 
     def __init__(self, method='single', metric='euclidean', heuristic='firstgap',
-                 pre_transform = None, k_max=None, verbose=1):
+                 bins='fd', pre_transform = None, k_max=None, verbose=1):
 
         self.method = method
         self.metric = metric
         self.heuristic = heuristic
+        self.bins = bins
         self.verbose = verbose
         self.pre_transform = pre_transform
 
@@ -248,7 +254,8 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         gap_heuristic_percentiles = {'firstgap': 0, 'midgap': 50, 'lastgap':100}
         if self.heuristic in gap_heuristic_percentiles:
             percentile = gap_heuristic_percentiles[self.heuristic]
-            self.labels_, k = mapper_gap_heuristic(Z, percentile, self.k_max)
+            self.labels_, k = mapper_gap_heuristic(Z, percentile,
+                                                   self.k_max, self.bins)
         elif self.heuristic == 'sil' or self.heuristic == 'silhouette':
             self.labels_, k = statistic_heuristic(X, self.metric, Z, self.k_max, statistic=negative_silhouette)
         else:
