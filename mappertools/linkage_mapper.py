@@ -33,7 +33,7 @@ def find_histogram_gap(merge_distances, percentile, bins='doane'):
     return threshold
 
 
-def mapper_gap_heuristic(Z, percentile, k_max=None, bins="fd"):
+def mapper_gap_heuristic(Z, percentile, k_max=None, bins="doane"):
     merge_distances = Z[:,2]
 
     if k_max != None and k_max != np.inf:
@@ -191,7 +191,7 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     """
 
     def __init__(self, method='single', metric='euclidean', heuristic='firstgap',
-                 bins='fd', pre_transform = None, k_max=None, verbose=1):
+                 bins='doane', pre_transform = None, k_max=None, verbose=1):
 
         self.method = method
         self.metric = metric
