@@ -58,10 +58,28 @@ def DaviesBouldinIndex(X, labels, metric):
     return 0
 
 def negative_silhouette(X, labels, metric):
-    if metric == 'precomputed':
-        return -metrics.silhouette_score(scipy.spatial.distance.squareform(X), labels, metric=metric)
-    else:
-        return -metrics.silhouette_score(X, labels, metric=metric)
+    """
+    Compute the negative of the silhouette score.
+    Uses sklearn.metrics.negative_silhouette
+
+    Parameters
+    ----------
+    X : array [n_samples, n_samples] if metric == "precomputed", or, \
+             [n_samples, n_features] otherwise
+        Array of pairwise distances between samples, or a feature array.
+
+    labels : array, shape = [n_samples]
+         Predicted labels for each sample.
+
+    metric : string, or callable
+        The metric to use when calculating distance between instances in a
+        feature array. If metric is a string, it must be one of the options
+        allowed by :func:`metrics.pairwise.pairwise_distances
+        <sklearn.metrics.pairwise.pairwise_distances>`. If X is the distance
+        array itself, use ``metric="precomputed"``.
+    """
+
+    return -metrics.silhouette_score(X, labels, metric=metric)
 
 
 
@@ -72,14 +90,18 @@ def statistic_heuristic(X, metric, Z, k_max, statistic=negative_silhouette):
     Determine 'best' clustering by minimizing value of statistic function
     over different thresholding of the hierarchical clustering Z.
 
+    Brute force search.
+
     Parameters
     ----------
-    X : array, shape=(n_samples, n_features)
-        original data
+    X : array [n_samples, n_samples] if metric == "precomputed", or, \
+             [n_samples, n_features] otherwise
+        Array of pairwise distances between samples, or a feature array.
 
     metric : str or function, optional
         See the ``scipy.spatial.distance.pdist`` function for a list of valid distance metrics.
-        A custom distance function can also be used.
+        A custom distance function can also be used. If X is the distance
+        array itself, use ``metric="precomputed"``.
 
     Z : array
         hierarchical clustering encoded as a linkage matrix.
@@ -135,7 +157,6 @@ class PreTransformPCA(object):
             pca = sklearn.decomposition.PCA(n_components=np.max(self.pc_axes)+1)
             pca.fit(X)
         return pca.transform(X)[:,self.pc_axes]
-
 
 
 class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
@@ -213,14 +234,9 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
 
         Parameters
         ----------
-        X : ndarray
-            A collection of `m` observation vectors in `n` dimensions
-            as an `m` by `n` array.
-
-            Alternatively, a condensed distance matrix. A condensed distance matrix
-            is a flat array containing the upper triangular of the distance matrix.
-            This is the form that ``pdist`` returns. All elements of the condensed
-            distance matrix must be finite, i.e. no NaNs or infs.
+        X : array [n_samples, n_samples] if metric == "precomputed", or, \
+             [n_samples, n_features] otherwise
+            Array of pairwise distances between samples, or a feature array.
 
         y : ignored
 
@@ -233,18 +249,25 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             X = self.pre_transform.transform(X)
 
         if len(X.shape) == 2 and X.shape[0] == 1:
+            if self.verbose > 0:
+                print("1 clusters detected in {} points".format(X.shape[0]))
             self.labels_ = np.array([1])
             return
 
-        Z = scipy.cluster.hierarchy.linkage(X, method=self.method, metric=self.metric)
+        if self.metric != 'precomputed':
+            Z = scipy.cluster.hierarchy.linkage(X, method=self.method, metric=self.metric)
+        else:
+            #flatten
+            compdists = scipy.spatial.distance.squareform(X, force='tovector')
+            Z = scipy.cluster.hierarchy.linkage(compdists, method=self.method, metric=self.metric)
 
-        if self.verbose:
+        if self.verbose >= 2:
             print("*** Linkage Mapper Report ***")
             if X.shape[0] > 2:
                 if self.metric != 'precomputed':
                     dists = scipy.spatial.distance.pdist(X, metric=self.metric)
                 else:
-                    dists = X
+                    dists = compdists
                 c, _ = scipy.cluster.hierarchy.cophenet(Z, dists)
                 print("cophentic correlation distance: {}".format(c))
             else:
@@ -254,16 +277,18 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         gap_heuristic_percentiles = {'firstgap': 0, 'midgap': 50, 'lastgap':100}
         if self.heuristic in gap_heuristic_percentiles:
             percentile = gap_heuristic_percentiles[self.heuristic]
-            self.labels_, k = mapper_gap_heuristic(Z, percentile,
-                                                   self.k_max, self.bins)
+            self.labels_, k = mapper_gap_heuristic(Z, percentile, self.k_max, self.bins)
+
         elif self.heuristic == 'sil' or self.heuristic == 'silhouette':
             self.labels_, k = statistic_heuristic(X, self.metric, Z, self.k_max, statistic=negative_silhouette)
         else:
             pass
 
         # FINAL REPORTING
-        if self.verbose:
+        if self.verbose > 0:
             print("{} clusters detected in {} points".format(k,X.shape[0]))
+
+        if self.verbose >= 2:
             if k <= 1:
                 print("silhouette score: invalid, too few final clusters")
             else:

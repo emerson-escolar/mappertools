@@ -42,7 +42,7 @@ def test_heuristics():
 
 
 def test_heuristics_precomputed():
-    dists = spd.pdist(X)
+    dists = spd.squareform(spd.pdist(X))
 
     fg = lk.LinkageMapper(heuristic='firstgap', metric='precomputed').fit(dists)
     assert len(np.unique(fg.labels_)) == 3
