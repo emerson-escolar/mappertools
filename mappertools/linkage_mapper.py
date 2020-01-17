@@ -34,6 +34,27 @@ def find_histogram_gap(merge_distances, percentile, bins='doane'):
 
 
 def mapper_gap_heuristic(Z, percentile, k_max=None, bins="doane"):
+    """
+    Parameters
+    ----------
+    Z : array
+        hierarchical clustering encoded as a linkage matrix.
+        Output of scipy.cluster.hierarchy.linkage applied to X with given metric.
+        It is user responsibility to assure that this is indeed the case.
+
+    percentile : int in [0,100]
+        Percentile gap to use. 0 corresponds to first gap
+
+    k_max : int, optional
+        Maximum number of clusters.
+
+    bins : int or string, optional
+        Number of bins to use for creating the histogram of merge-distances.
+        Either a positive integer, or choose from:
+        ‘auto’, ‘fd’, ‘doane’, ‘scott’, ‘stone’, ‘rice’, ‘sturges’, ‘sqrt’.
+
+        Internally uses numpy.histogram.
+    """
     merge_distances = Z[:,2]
 
     if k_max != None and k_max != np.inf:
