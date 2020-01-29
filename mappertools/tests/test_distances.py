@@ -23,3 +23,11 @@ def test_no_overlap():
     cos = scipy.spatial.distance.squareform(scipy.spatial.distance.pdist(X, metric='cosine'))
 
     assert np.allclose(bloom, 1-cos)
+
+
+def test_mahalanobis_dissimilarity():
+    X = np.random.randn(30,50)
+    dissim = dst.flipped_bloom_mahalanobis_dissimilarity(X)
+    assert dissim.shape[0] == dissim.shape[1]
+    assert np.allclose(dissim, dissim.T)
+    assert np.all(np.diagonal(dissim) ==  0)

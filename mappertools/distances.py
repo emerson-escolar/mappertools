@@ -53,9 +53,9 @@ def normalize_diagonal_to_one(A):
     return normed_A
 
 
-def flipped_bloom_mahalanobis_distance(X):
+def flipped_bloom_mahalanobis_dissimilarity(X):
     """
-    Compute a distance based on
+    Compute a dissimilarity based on
     Mahalanobis normed technology closeness measure
     as defined in Bloom, Schankerman, Van Reenen (2013)
 
