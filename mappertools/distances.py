@@ -25,6 +25,10 @@ def bloom_mahalanobis_closeness(X):
                        sklearn.preprocessing.normalize(X.T, axis=1))
     closeness = np.matmul(Xprime, Xprime.T)
 
+    # X_l2 = sklearn.preprocessing.normalize(X, norm="l2")
+    # XT_l2 = sklearn.preprocessing.normalize(X.T, norm="l2")
+    # Omega = XT_l2 @ XT_l2.T
+    # closeness = X_l2 @ Omega @ X_l2.T
     return closeness
 
 
