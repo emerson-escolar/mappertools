@@ -3,8 +3,8 @@ import numpy as np
 
 import pandas
 
-def get_nodes_containing_member(G, member, query_data='unique_members'):
-    return (node for node in G if member in G.nodes[node][query_data])
+def get_nodes_containing_entity(G, entity, query_data='unique_members'):
+    return (node for node in G if entity in G.nodes[node][query_data])
 
 
 def compute_core_shell(G, H):
@@ -12,7 +12,18 @@ def compute_core_shell(G, H):
     Compute core-shell decomposition of a subset of nodes H with respect to graph G.
 
     A vertex x in H is said to be core if all neighbors of x are in H.
-    Otherwise, it is said to be shell
+    Otherwise, it is said to be shell.
+
+    Parameters
+    ----------
+    G : networkx graph
+
+    H : iterable of nodes in G
+
+    Returns
+    -------
+    (core, shell) : tuple of lists
+        list of vertices in the core and shell, respectively
     """
 
     core = []
@@ -29,25 +40,49 @@ def compute_core_shell(G, H):
     return core, shell
 
 
-def compute_flareness(G, member,
+def compute_flareness(G, entity,
                       weight=(lambda v,u,e: 1), query_data='unique_members',
                       verbose=0):
-    G_member = set(get_nodes_containing_member(G, member, query_data))
-    core, shell = compute_core_shell(G, G_member)
+    """
+    Compute "flares" in G using the proposed definition in
+    Escolar et al., "Mapping Firms' Locations in Technological Space"
 
-    if len(G_member) == 0:
-        if verbose > 0: print("Member {} not found. Ignoring".format(member))
+
+    Parameters
+    ----------
+    G : networkx graph
+        Represents a Mapper graph, where each node may be
+        a set of observations of different entities.
+
+    entity :
+        The particular entity whose flareness in the graph G we want to compute.
+
+    weight :
+
+    query_data : str
+        The node attribute containing the 'unique members' of each node.
+
+    verbose : bool
+        whether or not to print diagnostic messages
+    """
+
+
+    G_entity = set(get_nodes_containing_entity(G, entity, query_data))
+    core, shell = compute_core_shell(G, G_entity)
+
+    if len(G_entity) == 0:
+        if verbose > 0: print("Entity {} not found. Ignoring".format(entity))
         return None, None
 
     if verbose > 0:
-        print("G_member: ", G_member)
+        print("G_entity: ", G_entity)
         print("core: ", core)
         print("shell: ", shell)
 
-    G_member_subgraph = G.subgraph(G_member)
+    G_entity_subgraph = G.subgraph(G_entity)
     distances = {}
     if len(shell) > 0:
-        distances = nx.multi_source_dijkstra_path_length(G_member_subgraph,shell,
+        distances = nx.multi_source_dijkstra_path_length(G_entity_subgraph,shell,
                                                          weight=weight)
     k = []
     components = list(nx.connected_components(G.subgraph(core)))
@@ -60,19 +95,19 @@ def compute_flareness(G, member,
 
 
 
-def compute_all_summary(G, members, weight=(lambda v,u,e: 1),
+def compute_all_summary(G, entities, weight=(lambda v,u,e: 1),
                         query_data='unique_members', verbose=0,
                         keep_missing=False):
     ans = pandas.DataFrame(columns=['type','k_index','k_sig'])
-    for member in members:
-        k, _ = compute_flareness(G, member, weight, query_data, verbose)
+    for entity in entities:
+        k, _ = compute_flareness(G, entity, weight, query_data, verbose)
         if k is None:
             if keep_missing:
-                ans.loc[member] = pandas.Series({'type':-1, 'k_index':None, 'k_sig':None})
+                ans.loc[entity] = pandas.Series({'type':-1, 'k_index':None, 'k_sig':None})
             continue
         else:
             k_type, k_index = flare_type_index(k)
-            ans.loc[member] = pandas.Series({'type':k_type, 'k_index':k_index, 'k_sig':k})
+            ans.loc[entity] = pandas.Series({'type':k_type, 'k_index':k_index, 'k_sig':k})
 
     return ans
 

@@ -20,7 +20,7 @@ def flare_detect(G, centrality, prune_threshold=0, verbose=False):
         Flares with persistence lifespan less than prune_threshold
         are combined with parent trees.
 
-    verbose : boolean
+    verbose : bool
     """
 
     if isinstance(centrality, str): centrality = G.nodes.data(centrality)
