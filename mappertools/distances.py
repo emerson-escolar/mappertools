@@ -79,25 +79,3 @@ def flipped_bloom_mahalanobis_dissimilarity(X):
 
 
 
-def normalized_bloom_mahalanobis_distance(X):
-    """
-    Compute a distance based on
-    Mahalanobis normed technology closeness measure
-    as defined in Bloom, Schankerman, Van Reenen (2013)
-
-    Parameters
-    ----------
-    X : array [n_samples, n_features]
-        data as a feature array.
-
-    Returns
-    -------
-    dissimilarity : array [n_samples, n_samples]
-        distance matrix
-    """
-
-    closeness = bloom_mahalanobis_closeness(X)
-    dissimilarity = 1 - normalize_diagonal_to_one(closeness)
-    assert np.allclose(dissimilarity, dissimilarity.T)
-
-    return (dissimilarity + dissimilarity.T)/2
