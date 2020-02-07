@@ -37,7 +37,7 @@ def nxmapper_append_node_member_data(nxgraph, extra_data, transforms=None):
     return nxgraph
 
 
-def nxmapper_append_flare_numbers(nxgraph):
+def nxmapper_append_centrality_flare_numbers(nxgraph):
 
     choices = ((nx.centrality.harmonic_centrality, "H"),
                (nx.centrality.closeness_centrality, "C"),
@@ -86,7 +86,7 @@ def nxmapper_append_edge_member_data(nxgraph, extra_data, transforms=None):
     return nxgraph
 
 
-def nxmapper_append_basic_data(nxgraph, counts=True, weights=True, flares=False):
+def nxmapper_append_basic_data(nxgraph, counts=True, weights=True, cen_flares=False):
     """
     Convenience function for appending networkx format mapper graph with counts and weights
 
@@ -102,8 +102,9 @@ def nxmapper_append_basic_data(nxgraph, counts=True, weights=True, flares=False)
     weights : bool
         whether or not to append membership 'weight' data to edges
 
-    flares : bool
-        whether or not to append 'flare index' data to nodes, as computed by persistence-based algorithm
+    cen_flares : bool
+        whether or not to append 'flare index' data to nodes,
+        as computed by persistence-based algorithm on centrality filtration
     """
 
 
@@ -123,8 +124,8 @@ def nxmapper_append_basic_data(nxgraph, counts=True, weights=True, flares=False)
         for node, membership in nxgraph.nodes.data('membership'):
             nxgraph.nodes[node]["count"] = len(membership)
 
-    if flares:
-        nxGraph = nxmapper_append_flare_numbers(nxgraph)
+    if cen_flares:
+        nxGraph = nxmapper_append_centrality_flare_numbers(nxgraph)
 
     return nxgraph
 
@@ -133,7 +134,7 @@ def nxmapper_append_basic_data(nxgraph, counts=True, weights=True, flares=False)
 def kmapper_to_nxmapper(graph,
                         node_extra_data=None, edge_extra_data=None,
                         node_transforms=None, edge_transforms=None,
-                        counts = True, weights = True, flares=False):
+                        counts = True, weights = True, cen_flares=False):
     """
     Convenience function for converting kmapper graph to networkx format
     and appending extra data.
@@ -162,12 +163,13 @@ def kmapper_to_nxmapper(graph,
     weights : bool
         whether or not to append membership 'weight' data to edges
 
-    flares : bool
-        whether or not to append 'flare index' data to nodes, as computed by persistence-based algorithm
+    cen_flares : bool
+        whether or not to append 'flare index' data to nodes,
+        as computed by persistence-based algorithm on centrality filtration
     """
 
     nxGraph = km.adapter.to_nx(graph)
-    nxGraph = nxmapper_append_basic_data(nxGraph, counts, weights, flares)
+    nxGraph = nxmapper_append_basic_data(nxGraph, counts, weights, cen_flares)
     if node_extra_data:
         nxGraph = nxmapper_append_node_member_data(nxGraph, node_extra_data, node_transforms)
     if edge_extra_data:
