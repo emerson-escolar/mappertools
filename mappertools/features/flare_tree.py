@@ -5,6 +5,60 @@ import operator
 import itertools
 
 
+def flare_detect(G, centrality, prune_threshold=0, verbose=False):
+    """
+    Compute "flares" in G using the 0-persistent homology of centrality filtration.
+
+    Parameters
+    ----------
+    G : networkx graph
+
+    centrality : dict {node : centrality}, or
+                 str  node attribute corresponding to centrality
+
+    prune_threshold : float
+        Flares with persistence lifespan less than prune_threshold
+        are combined with parent trees.
+
+    verbose : boolean
+    """
+
+    if isinstance(centrality, str): centrality = G.nodes.data(centrality)
+
+    flare_trees = set([])
+    for node, cur_cen in sorted(centrality.items(), key=operator.itemgetter(1)):
+        neighbors = [nbr for nbr in G[node] if centrality[nbr] <= cur_cen]
+
+        if verbose:
+            print("node: {}, centrality: {}, neighbors: {}".format(node,
+                                                                   cur_cen,
+                                                                   neighbors))
+
+        death_candidates = [tree for tree in flare_trees if tree.intersects(neighbors)]
+        if len(death_candidates) == 0:
+            # print("birth")
+            new_tree = FlareTree(flare=Flare(node, cur_cen))
+            flare_trees.add(new_tree)
+        else:
+            elder_tree = min(death_candidates, key=(lambda tree: tree.flare.birth[0]))
+            for tree in death_candidates:
+                if tree != elder_tree:
+                    flare_trees.remove(tree)
+                    tree.flare.death = (cur_cen, node)
+                    elder_tree.add_subtree(tree)
+                    if tree.flare.lifespan() < prune_threshold:
+                        elder_tree.collapse_subtree(tree)
+
+            elder_tree.flare.nodes.add(node)
+
+        # for tree in flare_trees:
+        #     tree.print_all()
+        # print()
+    ans = sort_flares(unpack_flares(flare_trees))
+    return ans
+
+
+
 class Flare(object):
     def __init__(self, node, birth):
         self.nodes = set([node])
@@ -83,38 +137,7 @@ def sort_flares(flare_list):
     return sorted(flare_list, key=(lambda flare:flare.death[0] - flare.birth[0]),reverse=True)
 
 
-def flare_detect(G, centrality, prune_threshold=0, verbose=False):
-    if isinstance(centrality, str): centrality = G.nodes.data(centrality)
 
-    flare_trees = set([])
-    for node, cur_cen in sorted(centrality.items(), key=operator.itemgetter(1)):
-        neighbors = [nbr for nbr in G[node] if centrality[nbr] <= cur_cen]
-
-        if verbose:
-            print("node: {}, centrality: {}, neighbors: {}".format(node, cur_cen, neighbors))
-
-        death_candidates = [tree for tree in flare_trees if tree.intersects(neighbors)]
-        if len(death_candidates) == 0:
-            # print("birth")
-            new_tree = FlareTree(flare=Flare(node, cur_cen))
-            flare_trees.add(new_tree)
-        else:
-            elder_tree = min(death_candidates, key=(lambda tree: tree.flare.birth[0]))
-            for tree in death_candidates:
-                if tree != elder_tree:
-                    flare_trees.remove(tree)
-                    tree.flare.death = (cur_cen, node)
-                    elder_tree.add_subtree(tree)
-                    if tree.flare.lifespan() < prune_threshold:
-                        elder_tree.collapse_subtree(tree)
-                    
-            elder_tree.flare.nodes.add(node)
-
-        # for tree in flare_trees:
-        #     tree.print_all()
-        # print()
-    ans = sort_flares(unpack_flares(flare_trees))
-    return ans
 
 
 if __name__ == "__main__":
