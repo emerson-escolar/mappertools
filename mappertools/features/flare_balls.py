@@ -4,7 +4,32 @@ import numpy as np
 import pandas
 
 def get_nodes_containing_entity(G, entity, query_data='unique_members'):
-    return (node for node in G if entity in G.nodes[node][query_data])
+    """
+    Given a Mapper graph, where each node is a set of observations of
+    different entities, we find the ndoes containing a given entity.
+
+    That is, each entity may appear more than once as different observations in different nodes.
+
+
+    Parameters
+    ----------
+    G : networkx graph
+        The Mapper graph to query.
+
+    entity :
+        The particular entity we want to find in G.
+
+    query_data : str
+        node attribute key containing 'unique members' (names of entities) of each node
+
+    Returns
+    -------
+    nodes : list
+        list of nodes containing at least one observation of entity
+    """
+
+    nodes = (node for node in G if entity in G.nodes[node][query_data])
+    return nodes
 
 
 def compute_core_shell(G, H):
@@ -44,9 +69,11 @@ def compute_flareness(G, entity,
                       weight=(lambda v,u,e: 1), query_data='unique_members',
                       verbose=0):
     """
-    Compute "flares" in G using the proposed definition in
+    Compute "flareness" of entity in Mapper graph G using the proposed definition in
     Escolar et al., "Mapping Firms' Locations in Technological Space"
 
+
+    See flare_balls.get_nodes_containing_entity for a discussion on entities.
 
     Parameters
     ----------
@@ -60,7 +87,7 @@ def compute_flareness(G, entity,
     weight :
 
     query_data : str
-        The node attribute containing the 'unique members' of each node.
+        The node attribute key containing 'unique members' (names of entities) of each node.
 
     verbose : bool
         whether or not to print diagnostic messages
