@@ -125,6 +125,41 @@ def compute_flareness(G, entity,
 def compute_all_summary(G, entities, weight=(lambda v,u,e: 1),
                         query_data='unique_members', verbose=0,
                         keep_missing=False):
+    """
+    Compute "flareness" of all entities in Mapper graph G
+    using the proposed definition in
+    Escolar et al., "Mapping Firms' Locations in Technological Space"
+
+    See flare_balls.get_nodes_containing_entity for a discussion on entities.
+
+    Parameters
+    ----------
+    G : networkx graph
+        Represents a Mapper graph, where each node may be
+        a set of observations of different entities.
+
+    entities :
+        List of entities whose flareness in the graph G we want to compute.
+
+    weight :
+
+    query_data : str
+        The node attribute key containing 'unique members' (names of entities) of each node.
+
+    verbose : bool
+        whether or not to print diagnostic messages
+
+    keep_missing : bool
+        whether or not to include entities not found in G
+
+    Returns
+    -------
+    ans : pandas.DataFrame
+        With columns 'type','k_index','k_sig', corresponding to
+        type, flare length, and flare signature respectively.
+        See the paper for definitions.
+    """
+
     ans = pandas.DataFrame(columns=['type','k_index','k_sig'])
     for entity in entities:
         k, _ = compute_flareness(G, entity, weight, query_data, verbose)
