@@ -1,5 +1,5 @@
 import pytest
-import mappertools.distances as dst
+import mappertools.mapper.distances as dst
 import numpy as np
 import scipy.spatial.distance
 import sklearn.preprocessing

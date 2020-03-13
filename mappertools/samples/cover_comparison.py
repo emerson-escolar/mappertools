@@ -1,7 +1,7 @@
 import numpy as np
 from kmapper import cover
 
-from mappertools import covers
+from mappertools.mapper import covers
 
 def overlap(c1, c2):
     ints = set(c1).intersection(set(c2))

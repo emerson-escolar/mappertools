@@ -1,5 +1,5 @@
 import pytest
-import mappertools.covers as cv
+import mappertools.mapper.covers as cv
 import numpy as np
 
 def test_uniform_no_overlap():

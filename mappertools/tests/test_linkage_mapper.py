@@ -3,7 +3,7 @@ import scipy.cluster.hierarchy
 import scipy.spatial.distance as spd
 import numpy as np
 
-import mappertools.linkage_mapper as lk
+import mappertools.mapper.linkage_mapper as lk
 
 # artificial data with "obvious" clustering
 X = np.array([[0,0,0],
