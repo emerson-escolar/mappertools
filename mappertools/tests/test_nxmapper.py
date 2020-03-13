@@ -1,6 +1,6 @@
 import pytest
 
-import mappertools.text_dump as td
+import mappertools.outputs.text_dump as td
 import networkx as nx
 import kmapper as km
 import sklearn.cluster

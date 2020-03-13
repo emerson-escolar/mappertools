@@ -1,7 +1,7 @@
 import pathlib
 import sklearn.manifold as skm
 import scipy.spatial.distance as ssd
-import mappertools.visualization as qs
+import mappertools.outputs.visualization as qs
 import numpy as np
 
 def do_mds_one_dim_analysis(data, data_name, dim=2, metric='correlation', output_folder = None, do_outputs=False):
