@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 
 import sklearn.base
@@ -129,7 +130,7 @@ class PreTransformPCA(object):
     """
     Projection onto chosen PCA axes.
 
-    For use as pre_transform in LinkageMapper.
+    For use as pre_transform in HeuristicHierarchical.
     """
     def __init__(self, pc_axes, precomputed=None):
         self.pc_axes = pc_axes
@@ -147,9 +148,10 @@ class PreTransformPCA(object):
         return pca.transform(X)[:,self.pc_axes]
 
 
-class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
+class HeuristicHierarchical(sklearn.base.BaseEstimator,
+                            sklearn.base.ClusterMixin):
     """
-    Agglomerative Linkage Clustering, with heuristic
+    Hierarchical Clustering, using heuristic to determine clusters
 
     Uses scipy.cluster.hierarchy algorithms.
     Class is designed to emulate sklearn.cluster format, for compatibility with kmapper.
@@ -177,8 +179,8 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
 
     pre_transform :
         A class instance with a transform method.
-        This is applied to the input when LinkageMapper.fit is called.
-        Not compatible with a precomputed metric!
+        This is applied to the input when HeuristicHierarchical.fit
+        is called. Not compatible with a precomputed metric!
 
     k_max : int, optional
         Maximum number of clusters.
@@ -219,7 +221,7 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
 
 
     def fit(self, X, y=None):
-        """Fit the Linkage clustering on data
+        """Fit the HeuristicHierarchical clustering on data
 
         Parameters
         ----------
@@ -251,7 +253,7 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             Z = scipy.cluster.hierarchy.linkage(compdists, method=self.method, metric=self.metric)
 
         if self.verbose >= 2:
-            print("*** Linkage Mapper Report ***")
+            print("*** Heuristic Hierarchical Clustering Report ***")
             if X.shape[0] > 2:
                 if self.metric != 'precomputed':
                     dists = scipy.spatial.distance.pdist(X, metric=self.metric)
@@ -283,3 +285,9 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             else:
                 print("silhouette score: {}".format(-negative_silhouette(X, self.labels_, metric=self.metric)))
         return self
+
+
+class LinkageMapper(HeuristicHierarchical):
+    def __init__(self, *args, **kwargs):
+        warnings.warn("LinkageMapper is planned to be deprecated. Use HeuristicHierarchical instead.", PendingDeprecationWarning)
+        super().__init__(*args, **kwargs)
