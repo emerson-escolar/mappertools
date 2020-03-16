@@ -1,3 +1,4 @@
+import pandas
 import numpy as np
 import sklearn.preprocessing
 
@@ -75,7 +76,9 @@ def flipped_bloom_mahalanobis_dissimilarity(X):
     np.fill_diagonal(dissimilarity, 0)
     assert np.allclose(dissimilarity, dissimilarity.T)
 
-    return (dissimilarity + dissimilarity.T)/2
+    ans = (dissimilarity + dissimilarity.T)/2
 
+    if hasattr(X, "index"):
+        ans = pandas.DataFrame(ans, index = X.index, columns = X.index)
 
-
+    return ans
