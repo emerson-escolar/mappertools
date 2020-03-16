@@ -288,6 +288,8 @@ class HeuristicHierarchical(sklearn.base.BaseEstimator,
 
 
 class LinkageMapper(HeuristicHierarchical):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, method='single', metric='euclidean', heuristic='firstgap',
+                 bins='doane', pre_transform = None, k_max=None, verbose=1):
         warnings.warn("LinkageMapper is planned to be deprecated. Use HeuristicHierarchical instead.", PendingDeprecationWarning)
-        super().__init__(*args, **kwargs)
+        super().__init__(method=method, metric=metric, heuristic=heuristic,
+                         bins=bins, pre_transform=pre_transform, k_max=k_max, verbose=verbose)
