@@ -1,16 +1,12 @@
-import sklearn.cluster
+import numpy as np
+
 import sklearn.base
 import sklearn.decomposition
-
-import numpy as np
+import sklearn.metrics
+# import sklearn.cluster
 
 import scipy.cluster.hierarchy
 import scipy.spatial.distance
-
-import matplotlib.pyplot as plt
-
-from sklearn import metrics
-
 
 
 def cluster_number_to_threshold(k, merge_distances):
@@ -71,12 +67,12 @@ def mapper_gap_heuristic(Z, percentile, k_max=None, bins="doane"):
     return labels, k
 
 
-
-def DaviesBouldinIndex(X, labels, metric):
-    # for lbl in np.unique(labels):
-    #     print(X[labels==lbl])
+# def DaviesBouldinIndex(X, labels, metric):
+#     # for lbl in np.unique(labels):
+#     #     print(X[labels==lbl])
     
-    return 0
+#     return 0
+
 
 def negative_silhouette(X, labels, metric):
     """
@@ -100,8 +96,7 @@ def negative_silhouette(X, labels, metric):
         array itself, use ``metric="precomputed"``.
     """
 
-    return -metrics.silhouette_score(X, labels, metric=metric)
-
+    return -sklearn.metrics.silhouette_score(X, labels, metric=metric)
 
 
 def statistic_heuristic(X, metric, Z, k_max, statistic=negative_silhouette):
@@ -136,7 +131,6 @@ def statistic_heuristic(X, metric, Z, k_max, statistic=negative_silhouette):
         Statistic function that evaluates the 'goodness' of clustering given by labels.
         Smaller values are interpreted as better.
     """
-
     # N data points imply length N-1 merge_distances
     # statistic-based heuristic searches over 2 <= k <= N-1
     # to avoid trivial clustering.
@@ -161,9 +155,12 @@ def statistic_heuristic(X, metric, Z, k_max, statistic=negative_silhouette):
     return optimal_labels, optimal_k
 
 
-
-
 class PreTransformPCA(object):
+    """
+    Projection onto chosen PCA axes.
+
+    For use as pre_transform in LinkageMapper.
+    """
     def __init__(self, pc_axes, precomputed=None):
         self.pc_axes = pc_axes
         self.precomputed = precomputed
@@ -182,7 +179,7 @@ class PreTransformPCA(object):
 
 class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
     """
-    Agglomerative Linkage Clustering
+    Agglomerative Linkage Clustering, with heuristic
 
     Uses scipy.cluster.hierarchy algorithms.
     Class is designed to emulate sklearn.cluster format, for compatibility with kmapper.
@@ -209,7 +206,9 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
         Refer to numpy.histogram_bin_edges for choices.
 
     pre_transform :
-        a class instance with a transform method
+        A class instance with a transform method.
+        This is applied to the input when LinkageMapper.fit is called.
+        Not compatible with a precomputed metric!
 
     k_max : int, optional
         Maximum number of clusters.
@@ -234,7 +233,6 @@ class LinkageMapper(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
 
     def __init__(self, method='single', metric='euclidean', heuristic='firstgap',
                  bins='doane', pre_transform = None, k_max=None, verbose=1):
-
         self.method = method
         self.metric = metric
         self.heuristic = heuristic
