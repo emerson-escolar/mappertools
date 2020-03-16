@@ -34,20 +34,20 @@ def test_num_clusters():
 
 
 def test_heuristics():
-    fg = hc.LinkageMapper(heuristic='firstgap').fit(X)
+    fg = hc.HeuristicHierarchical(heuristic='firstgap').fit(X)
     assert len(np.unique(fg.labels_)) == 3
 
-    sil = hc.LinkageMapper(heuristic='sil').fit(X)
+    sil = hc.HeuristicHierarchical(heuristic='sil').fit(X)
     assert len(np.unique(sil.labels_)) == 3
 
 
 def test_heuristics_precomputed():
     dists = spd.squareform(spd.pdist(X))
 
-    fg = hc.LinkageMapper(heuristic='firstgap', metric='precomputed').fit(dists)
+    fg = hc.HeuristicHierarchical(heuristic='firstgap', metric='precomputed').fit(dists)
     assert len(np.unique(fg.labels_)) == 3
 
-    sil = hc.LinkageMapper(heuristic='sil', metric='precomputed').fit(dists)
+    sil = hc.HeuristicHierarchical(heuristic='sil', metric='precomputed').fit(dists)
     assert len(np.unique(sil.labels_)) == 3
 
 
@@ -70,8 +70,8 @@ def test_local_PCA():
 def test_local_PCA_with_clustering():
     pt = hc.PreTransformPCA(pc_axes=[0,1])
 
-    fg = hc.LinkageMapper(heuristic='firstgap', pre_transform=pt).fit(X)
+    fg = hc.HeuristicHierarchical(heuristic='firstgap', pre_transform=pt).fit(X)
     assert len(np.unique(fg.labels_)) == 3
 
-    sil = hc.LinkageMapper(heuristic='sil', pre_transform=pt).fit(X)
+    sil = hc.HeuristicHierarchical(heuristic='sil', pre_transform=pt).fit(X)
     assert len(np.unique(sil.labels_)) == 3
