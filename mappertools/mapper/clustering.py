@@ -6,6 +6,8 @@ import sklearn.base
 import scipy.spatial.distance as ssd
 
 import pyclustering.cluster.kmedoids as kmedoids
+import pyclustering.cluster.kmeans as kmeans
+
 import pyclustering.cluster.center_initializer as pci
 import pyclustering.utils.metric as pcm
 
@@ -60,11 +62,8 @@ def _process_metric(metric):
     return pcc_metric
 
 
-
-class kMedoids(sklearn.base.BaseEstimator,
-               sklearn.base.ClusterMixin):
-    def __init__(self, metric, heuristic,
-                 k_max=None, prefix="kMedoids", verbose=1):
+class _kType(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
+    def __init__(self, metric, heuristic, k_max=None, prefix="", verbose=1):
         self.metric = metric
         self.pcc_metric = _process_metric(metric)
 
@@ -77,15 +76,32 @@ class kMedoids(sklearn.base.BaseEstimator,
             k_max = np.inf
         self.k_max = k_max
 
-
-    def _fit_k(self, X, k):
+    @staticmethod
+    def _validate_data(X):
         if hasattr(X, "to_numpy") and callable(X.to_numpy):
             X = X.to_numpy()
+        return X
+
+    def _fit_k(self, X, k):
+        raise NotImplementedError
+
+    def fit(self, X, y=None):
+        if isinstance(self.heuristic, int):
+            return self._fit_k(X, self.heuristic)
+
+
+
+
+class kMedoids(_kType):
+    def __init__(self, metric, heuristic, k_max=None, prefix="kMedoids", verbose=1):
+        super().__init__(metric, heuristic, k_max, prefix, verbose)
+
+    def _fit_k(self, X, k):
+        X = self._validate_data(X)
         initial_medoids = pci.random_center_initializer(X, k).initialize(return_index=True)
 
         if self.metric == "precomputed":
-            ans = kmedoids.kmedoids(X, initial_medoids,
-                                        data_type = "distance_matrix")
+            ans = kmedoids.kmedoids(X, initial_medoids, data_type = "distance_matrix")
         else:
             ans = kmedoids.kmedoids(X, initial_medoids, metric=self.pcc_metric)
         ans.process()
@@ -94,6 +110,19 @@ class kMedoids(sklearn.base.BaseEstimator,
         return self
 
 
-    def fit(self, X, y=None):
-        if isinstance(self.heuristic, int):
-            return self._fit_k(X, self.heuristic)
+class kMeans(_kType):
+    def __init__(self, metric, heuristic, k_max=None, prefix="kMeans", verbose=1):
+        super().__init__(metric, heuristic, k_max, prefix, verbose)
+
+    def _fit_k(self, X, k):
+        X = self._validate_data(X)
+        initial_medoids = pci.random_center_initializer(X, k).initialize(return_index=True)
+
+        if self.metric == "precomputed":
+            ans = kmeans.kmeans(X, initial_medoids, data_type = "distance_matrix")
+        else:
+            ans = kmeans.kmeans(X, initial_medoids, metric=self.pcc_metric)
+        ans.process()
+        self.labels_ = _clusters_to_labels(ans.get_clusters(), prefix=self.prefix)
+
+        return self
