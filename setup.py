@@ -9,5 +9,6 @@ setup(name='mappertools',
       version='0.3.3',
       description='Mapper tools',
       packages=find_packages(exclude=["*.tests"]),
-      install_requires=['numpy', 'matplotlib']
+      install_requires=['numpy', 'matplotlib', 'pyclustering', 'networkx', 'pandas',
+                        'sklearn', 'scipy']
 )
