@@ -2,7 +2,6 @@ import math
 import numpy as np
 
 import sklearn.base
-
 import scipy.spatial.distance as ssd
 
 import pyclustering.cluster.kmedoids as kmedoids
@@ -24,24 +23,6 @@ scipy_metrics = {"braycurtis": ssd.braycurtis,
                  "cosine": ssd.cosine,
                  "jensenshannon": ssd.jensenshannon}
 
-
-def _clusters_to_labels(clusters, prefix=None):
-    n_clusters = len(clusters)
-    if n_clusters == 0: return []
-
-    fstr = prefix + "_" if prefix else ""
-    fstr += ("{:0" + str(math.ceil(math.log(n_clusters,10))) + "d}")
-
-    n_points = sum([len(cluster) for cluster in clusters])
-    labels = ["none"] * n_points
-    for i, cluster in enumerate(clusters):
-        cluster_str = fstr.format(i)
-        for point in cluster:
-            labels[point] = cluster_str
-
-    return labels
-
-
 def _process_metric(metric):
     if metric == "precomputed":
         return None
@@ -61,8 +42,49 @@ def _process_metric(metric):
     pcc_metric = pcm.distance_metric(pcc_type_metric, func = metric_func)
     return pcc_metric
 
+def _clusters_to_labels(clusters, prefix=None):
+    """
+    Convert clusters to labels
+
+    Parameters
+    ----------
+    clusters : list of lists
+        A list of clusters, each cluster expressed as a list of member indices
+        No checking is done for shared members.
+
+    prefix : str
+        Optional string to prefix labels with.
+
+    Returns
+    -------
+    labels : list of str
+        List of labels, according to member index.
+        Label is given by 'prefix_clusternumber', where clusternumber
+        is the last cluster in clusters which contains index.
+    """
+
+    n_clusters = len(clusters)
+    if n_clusters == 0: return []
+
+    fstr = prefix + "_" if prefix else ""
+    fstr += ("{:0" + str(math.ceil(math.log(n_clusters,10))) + "d}")
+
+    n_points = sum([len(cluster) for cluster in clusters])
+    labels = ["none"] * n_points
+    for i, cluster in enumerate(clusters):
+        cluster_str = fstr.format(i)
+        for point in cluster:
+            labels[point] = cluster_str
+
+    return labels
+
 
 class _kType(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
+    """
+    Base class for wrappers around pyclustering.cluster
+
+    Emulates classes in sklearn.cluster, for compatibility with kmapper.
+    """
     def __init__(self, metric, heuristic, k_max=None, prefix="", verbose=1):
         self.metric = metric
         self.pcc_metric = _process_metric(metric)
@@ -90,9 +112,13 @@ class _kType(sklearn.base.BaseEstimator, sklearn.base.ClusterMixin):
             return self._fit_k(X, self.heuristic)
 
 
-
-
 class kMedoids(_kType):
+    """
+    kMedoids clustering
+
+    Just a wrapper around pyclustering.cluster.kmedoids
+    emulating sklearn.cluster classes, for compatibility with kmapper.
+    """
     def __init__(self, metric, heuristic, k_max=None, prefix="kMedoids", verbose=1):
         super().__init__(metric, heuristic, k_max, prefix, verbose)
 
