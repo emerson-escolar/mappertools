@@ -139,19 +139,22 @@ class kMedoids(_kType):
 # buggy:
 # Problem: pyclustering kMeans does not support properly custom distances:
 # Both precomputed matrix and pcm.type_metric.USER_DEFINED function
-# class kMeans(_kType):
-#     def __init__(self, metric, heuristic, k_max=None, prefix="kMeans", verbose=1):
-#         super().__init__(metric, heuristic, k_max, prefix, verbose)
+class kMeans(_kType):
+    def __init__(self, metric, heuristic, k_max=None, prefix="kMeans", verbose=1):
+        if metric != "euclidean":
+            raise RuntimeError("kMeans only allowed for Euclidean metric")
+        
+        super().__init__(metric, heuristic, k_max, prefix, verbose)
 
-#     def _fit_k(self, X, k):
-#         X = self._validate_data(X)
-#         initial_centers = pci.kmeans_plusplus_initializer(X, k).initialize()
+    def _fit_k(self, X, k):
+        X = self._validate_data(X)
+        initial_centers = pci.kmeans_plusplus_initializer(X, k).initialize()
 
-#         if self.metric == "precomputed":
-#             ans = kmeans.kmeans(X, initial_centers, data_type = "distance_matrix")
-#         else:
-#             ans = kmeans.kmeans(X, initial_centers, metric=self.pcc_metric)
-#         ans.process()
-#         self.labels_ = _clusters_to_labels(ans.get_clusters(), prefix=self.prefix)
+        if self.metric == "precomputed":
+            ans = kmeans.kmeans(X, initial_centers, data_type = "distance_matrix")
+        else:
+            ans = kmeans.kmeans(X, initial_centers, metric=self.pcc_metric)
+        ans.process()
+        self.labels_ = _clusters_to_labels(ans.get_clusters(), prefix=self.prefix)
 
-#         return self
+        return self
