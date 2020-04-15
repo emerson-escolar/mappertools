@@ -6,7 +6,7 @@ import sys
 
 setup(name='mappertools',
       author='Emerson G. Escolar',
-      version='0.3.3',
+      version='0.3.4',
       description='Mapper tools',
       packages=find_packages(exclude=["*.tests"]),
       install_requires=['numpy', 'matplotlib', 'pyclustering', 'networkx', 'pandas',
