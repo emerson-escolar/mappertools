@@ -1,5 +1,7 @@
 # mappertools
 
+Various helper functions for doing Mapper analysis.
+This package has been designed mainly for use with [kmapper](https://kepler-mapper.scikit-tda.org/).
 
 ## Dependencies
 mappertools requires:
