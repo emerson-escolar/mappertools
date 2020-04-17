@@ -6,7 +6,6 @@ from contextlib import contextmanager
 import time
 
 # https://stackoverflow.com/questions/7370801/measure-time-elapsed-in-python
-
 @contextmanager
 def elapsed_timer():
     start = time.process_time()
@@ -14,6 +13,7 @@ def elapsed_timer():
     yield lambda: elapser()
     end = time.process_time()
     elapser = lambda: end-start
+
 
 def form_data(N):
     X = np.random.rand(N,3) + np.array([[10,10,10]])
@@ -23,29 +23,19 @@ def form_data(N):
     return data
 
 
-
-
-def do_timings(data):
+def do_timings(metric, data):
     with elapsed_timer() as elapsed:
-        k_fly = mclust.kMedoids(metric="cosine", heuristic=2).fit(data)
-        print("on-the-fly cosine kMedoids in %.2f seconds" % elapsed())
-
+        k_fly = mclust.kMedoids(metric=metric, heuristic=2).fit(data)
+        print("on-the-fly  {} kMedoids in {:.6f} seconds".format(metric, elapsed()))
 
     with elapsed_timer() as elapsed:
-        distance_matrix = ssd.squareform(ssd.pdist(data, metric="cosine"))
+        distance_matrix = ssd.squareform(ssd.pdist(data, metric=metric))
         k_pre = mclust.kMedoids(metric="precomputed", heuristic=2).fit(distance_matrix)
-        print("precomputed cosine kMedoids in %.2f seconds" % elapsed())
-
-    with elapsed_timer() as elapsed:
-        k_fly_euc = mclust.kMedoids(metric="euclidean", heuristic=2).fit(data)
-        print("on-the-fly euclidean kMedoids in %.2f seconds" % elapsed())
-
-    with elapsed_timer() as elapsed:
-        distance_matrix = ssd.squareform(ssd.pdist(data, metric="euclidean"))
-        k_pre_euc = mclust.kMedoids(metric="precomputed", heuristic=2).fit(distance_matrix)
-        print("precomputed euclidean kMedoids in %.2f seconds" % elapsed())
+        print("precomputed {} kMedoids in {:.6f} seconds".format(metric, elapsed()))
 
 
-for n in range(100,500,100):
+for n in range(100,200,100):
     data = form_data(n)
-    do_timings(data)
+    do_timings("cosine", data)
+    do_timings("euclidean", data)
+    do_timings("chebyshev", data)
