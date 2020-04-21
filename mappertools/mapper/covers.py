@@ -22,13 +22,10 @@ class EPCover(object):
     Intended for use with kmapper, and so the API follows that of kmapper.cover.Cover
     """
 
-
     def __init__(self, resolution, gain, verbose=0):
         self.resolution = resolution
         self.gain = gain
         self.verbose = verbose
-
-
 
         # FOR MAPPER COMPATIBILITY
         self.n_cubes = resolution
