@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import pandas
 
 import sklearn.base
 import scipy.spatial.distance as ssd
@@ -158,3 +159,13 @@ class kMeans(_kType):
         self.labels_ = _clusters_to_labels(ans.get_clusters(), prefix=self.prefix)
 
         return self
+
+
+def unique_entity_counts_by_cluster(labels, unique_names=None):
+    """
+    Convert labels to boolean matrix then optionally aggregate by unique names
+    """
+    ans = pandas.get_dummies(labels)
+    if unique_names:
+        ans = ans.groupby(unique_names).sum()
+    return ans
