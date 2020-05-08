@@ -169,5 +169,5 @@ def unique_entity_counts_by_cluster(labels, unique_names=None, cluster_totals=Fa
     if unique_names is not None:
         ans = ans.groupby(unique_names).sum()
     if cluster_totals:
-        ans = ans.append(ans.sum().rename('Total'))
+        ans = ans.append(ans.sum().rename('TOTAL'))
     return ans
