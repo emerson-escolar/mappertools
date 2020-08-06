@@ -16,6 +16,15 @@ mappertools requires:
   - matplotlib
 
 ## Install
+Install from release package:
+
+0. Navigate to the [releases page](https://github.com/emerson-escolar/mappertools/releases)
+1. Download a dist package "`mappertools-*.*.*.tar.gz`", NOT "Source code"
+2. Run `pip install mappertools-*.*.*.tar.gz` in command line
+
+Alternatively, for developers install using the following.
+
+## Develop
 Install from source:
 
 ```
