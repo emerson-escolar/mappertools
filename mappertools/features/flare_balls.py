@@ -155,21 +155,21 @@ def compute_all_summary(G, entities, weight=(lambda v,u,e: 1),
     Returns
     -------
     ans : pandas.DataFrame
-        With columns 'type','k_index','k_sig', corresponding to
+        With columns 'flare_type','flare_index','flare_sig', corresponding to
         type, flare length, and flare signature respectively.
         See the paper for definitions.
     """
 
-    ans = pandas.DataFrame(columns=['type','k_index','k_sig'])
+    ans = pandas.DataFrame(columns=['flare_type','flare_index','flare_sig'])
     for entity in entities:
         k, _ = compute_flareness(G, entity, weight, query_data, verbose)
         if k is None:
             if keep_missing:
-                ans.loc[entity] = pandas.Series({'type':-1, 'k_index':None, 'k_sig':None})
+                ans.loc[entity] = pandas.Series({'flare_type':-1, 'flare_index':None, 'flare_sig':None})
             continue
         else:
             k_type, k_index = flare_type_index(k)
-            ans.loc[entity] = pandas.Series({'type':k_type, 'k_index':k_index, 'k_sig':k})
+            ans.loc[entity] = pandas.Series({'flare_type':k_type, 'flare_index':k_index, 'flare_sig':k})
 
     return ans
 
