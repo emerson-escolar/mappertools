@@ -212,6 +212,8 @@ class HeuristicHierarchical(sklearn.base.BaseEstimator,
         self.verbose = verbose
         self.pre_transform = pre_transform
 
+        print("Clustering using: Hierarchical clustering with " + method + " linkage and " + heuristic + " heuristic.")
+
         if k_max == None:
             k_max = np.inf
         self.k_max = k_max
