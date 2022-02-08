@@ -1,6 +1,4 @@
-
-
-
+from functools import lru_cache
 
 
 
@@ -33,6 +31,11 @@ def get_nodes_containing_entity(G, entity, query_data='unique_members'):
 
     nodes = (node for node in G if entity in G.nodes[node][query_data])
     return nodes
+
+
+@lru_cache(maxsize=None)
+def get_nodes_containing_entity_cached(G, entity, query_data='unique_members'):
+    return list(get_nodes_containing_entity(G, entity, query_data))
 
 
 def compute_core_shell(G, H):

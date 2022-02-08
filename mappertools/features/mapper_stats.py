@@ -5,6 +5,9 @@ import mappertools.features.core as mfc
 
 
 
+# ****************************************************************************************************
+# statistics of entities in mapper graph:
+
 def compute_centrality_measures(nxgraph, unique_entities, centrality_functions, aggregation_functions,
                                 query_data='unique_members'):
 
@@ -36,3 +39,30 @@ def compute_centrality_measures(nxgraph, unique_entities, centrality_functions, 
                 ans.loc[entity, key] = agg_fun(entity_centralities)
 
     return ans
+
+
+def compute_entity_membership(nxgraph, unique_entities, query_data='unique_members'):
+    ans = pandas.DataFrame(index=unique_entities, columns=["containing_nodes", "num_containing_nodes"])
+
+    for entity in unique_entities:
+        entity_nodes = list(mfc.get_nodes_containing_entity(nxgraph, entity, query_data))
+
+        ans.loc[entity, "containing_nodes"] = entity_nodes
+        ans.loc[entity, "num_containing_nodes"] = len(entity_nodes)
+
+    return ans
+
+
+
+
+# ****************************************************************************************************
+# statistics of the mapper graph
+
+def compute_mapper_graph_summary(nxgraph):
+
+    return
+
+
+def containing_node_distribution(nxgraph, unique_entities, query_data='unique_members'):
+    entity_membership = compute_entity_membership(nxgraph, unique_entities, query_data)
+    return entity_membership["num_containing_nodes"].value_counts(sort=False)
