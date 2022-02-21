@@ -180,12 +180,12 @@ def kmapper_to_nxmapper(graph,
 
 ### ******************** cytoscape json outputs ********************
 
-def cytoscapejson_dump(nxgraph, file, positions=None):
+def cytoscapejson_dump(nxgraph, file, positions_scaling = 1.0, positions=None):
     result_json = nx.readwrite.json_graph.cytoscape_data(nxgraph)
     if positions is not None:
         N = len(result_json["elements"]["nodes"])
         for i in range(N):
-            result_json["elements"]["nodes"][i]["position"] = {"x": positions[i, 0], "y": positions[i, 1]}
+            result_json["elements"]["nodes"][i]["position"] = {"x": positions_scaling * positions[i, 0], "y": positions_scaling * positions[i, 1]}
 
     with open(file, 'w') as outfile:
        json.dump(result_json, outfile)
