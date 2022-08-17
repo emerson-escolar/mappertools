@@ -40,4 +40,4 @@ TBD
 
 ## License
 
-TBD
+GPL-3.0
