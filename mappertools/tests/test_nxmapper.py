@@ -65,7 +65,7 @@ def test_kmapper_sample():
     data = np.array([[0],[1],[2]])
     lens = data
 
-    graph = km.KeplerMapper().map(data, data, clusterer=sklearn.cluster.DBSCAN(eps=1, min_samples=0), cover=km.Cover(n_cubes=2,perc_overlap=0.5))
+    graph = km.KeplerMapper().map(data, data, clusterer=sklearn.cluster.DBSCAN(eps=1, min_samples=1), cover=km.Cover(n_cubes=2,perc_overlap=0.5))
     nxgraph = td.kmapper_to_nxmapper(graph)
     assert len(nxgraph.edges) == 1
     assert len(nxgraph.nodes) == 2

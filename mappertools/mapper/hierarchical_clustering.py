@@ -25,7 +25,7 @@ def find_histogram_gap(merge_distances, percentile, bins='doane'):
         return None
 
     gaps = np.argwhere(hist == 0).flatten()
-    idx = np.percentile(gaps, percentile, interpolation='nearest')
+    idx = np.percentile(gaps, percentile, method='nearest')
     threshold = bin_edges[idx]
     return threshold
 
