@@ -35,11 +35,11 @@ pip install -e .
 
 ## Usage
 
-0. mappertools/mapper contains several functions that may be useful for constructing mapper graphs. For example:
+1. mappertools/mapper contains several functions that may be useful for constructing mapper graphs. For example:
    - clustering.EPCover: "equalized projection cover"
-   - hierarchical_clustering.HeuristicHierarchical: heirarchical clustering with automated heuristics to determine number of clusters
+   - hierarchical_clustering.HeuristicHierarchical: hierarchical clustering with automated heuristics to determine number of clusters
    - distances, filters, clustering: as labeled
-1. mappertools/features contains several functions for analyzing mapper graphs
+2. mappertools/features contains several functions for analyzing mapper graphs
    - flare_balls: Compute "flareness" of entities in Mapper graph using the proposed definition in Escolar et al., "Mapping Firms' Locations in Technological Space"
    - flare_tree: Compute "flares" in G using the 0-persistent homology of centrality filtration.
    - mapper_stats: compute some summary statistics of a mapper graph
