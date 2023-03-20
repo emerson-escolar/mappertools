@@ -10,5 +10,5 @@ setup(name='mappertools',
       description='Mapper tools',
       packages=find_packages(exclude=["*.tests"]),
       install_requires=['numpy', 'matplotlib', 'pyclustering', 'networkx', 'pandas',
-                        'sklearn', 'scipy']
+                        'scikit-learn', 'scipy']
 )
