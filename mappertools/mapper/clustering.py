@@ -11,6 +11,10 @@ import pyclustering.cluster.kmeans as kmeans
 import pyclustering.cluster.center_initializer as pci
 import pyclustering.utils.metric as pcm
 
+# workaround for numpy.warnings deprecation
+import warnings
+np.warnings = warnings
+
 pyclustering_metrics = {"euclidean": pcm.type_metric.EUCLIDEAN,
                         "euclidean_square": pcm.type_metric.EUCLIDEAN_SQUARE,
                         "manhattan": pcm.type_metric.MANHATTAN,

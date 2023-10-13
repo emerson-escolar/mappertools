@@ -121,7 +121,7 @@ def has_flare(k):
     return np.any(np.array(k) != np.inf)
 
 def is_pure_island(k):
-    return len(k) > 0 and np.alltrue(np.array(k) == np.inf)
+    return len(k) > 0 and np.all(np.array(k) == np.inf)
 
 def finmax(k):
     return max(np.array(k)[np.array(k) != np.inf])

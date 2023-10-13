@@ -21,7 +21,7 @@ def cluster_number_to_threshold(k, merge_distances):
 def find_histogram_gap(merge_distances, percentile, bins='doane'):
     hist, bin_edges = np.histogram(merge_distances, bins=bins)
 
-    if np.alltrue(hist != 0):
+    if np.all(hist != 0):
         return None
 
     gaps = np.argwhere(hist == 0).flatten()
