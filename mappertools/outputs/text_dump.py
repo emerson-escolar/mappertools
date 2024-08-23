@@ -187,8 +187,8 @@ def cytoscapejson_dump(nxgraph, file, positions_scaling = 1.0, positions=None):
         for i in range(N):
             result_json["elements"]["nodes"][i]["position"] = {"x": positions_scaling * positions[i, 0], "y": positions_scaling * positions[i, 1]}
 
-    with open(file, 'w') as outfile:
-       json.dump(result_json, outfile)
+    with open(file, 'w', encoding='utf8') as outfile:
+       json.dump(result_json, outfile, ensure_ascii=False)
 
     return nxgraph
 
