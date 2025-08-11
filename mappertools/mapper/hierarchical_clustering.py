@@ -185,6 +185,14 @@ class HeuristicHierarchical(sklearn.base.BaseEstimator,
     k_max : int, optional
         Maximum number of clusters.
 
+    min_samples : int, optional
+        One less than the minimum number of samples to do clustering.
+        If less than or equal this number, all points will be set to the same cluster.
+        Warning:
+          kmapper (as of 2.1.0) removes clusters that have strictly less than this number of samples.
+          This number should probably be kept fixed as "1" if no data loss is desired.
+
+
     Attributes
     ----------
     labels_ : array [n_samples]
@@ -204,13 +212,15 @@ class HeuristicHierarchical(sklearn.base.BaseEstimator,
     """
 
     def __init__(self, method='single', metric='euclidean', heuristic='firstgap',
-                 bins='doane', pre_transform = None, k_max=None, verbose=1):
+                 bins='doane', pre_transform = None, k_max=None, verbose=1, min_samples=1):
         self.method = method
         self.metric = metric
         self.heuristic = heuristic
         self.bins = bins
         self.verbose = verbose
         self.pre_transform = pre_transform
+
+        self.min_samples = min_samples
 
         print("Clustering using: Hierarchical clustering with " + method + " linkage and " + heuristic + " heuristic.")
 
@@ -241,7 +251,7 @@ class HeuristicHierarchical(sklearn.base.BaseEstimator,
         if self.pre_transform != None:
             X = self.pre_transform.transform(X)
 
-        if len(X.shape) == 2 and X.shape[0] == 1:
+        if len(X.shape) == 2 and X.shape[0] > 0 and X.shape[0] <= self.min_samples:
             if self.verbose > 0:
                 print("1 clusters detected in {} points".format(X.shape[0]))
             self.labels_ = np.array([1])
